@@ -1,0 +1,12 @@
+Ctrl + Shift + P
+configure Language
+powershell
+
+settings.json
+に以下を追加する
+
+"[powershell]": {
+        "files.encoding": "shiftjis"
+    }
+
+ps1ファイルを開きなおすと、UTF-8から Shift JIS になってる！
