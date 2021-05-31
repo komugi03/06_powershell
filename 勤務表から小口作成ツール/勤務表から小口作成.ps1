@@ -19,8 +19,7 @@ $nanngatsu = Read-Host "何月の小口を作成しますか？(半角数字で入力)"
 
 
 # =======3.対象の勤務表をINPUTとして受け取る=======
-$kinmuhyou = gci -Recurse | ? name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
-$kinmuhyou
+$kinmuhyou = Get-ChildItem -Recurse | ? name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
 
 if($kinmuhyou -eq $null){
     echo ($nanngatsu + "月の勤務表を用意してください")
@@ -44,19 +43,17 @@ $excel.visible = $true
 $kinmuhyouBook = $excel.workbooks.open($kinmuhyou.fullname)
 
 # 小口のテンプレをつかむ
-$koguchiTemple = gci -Recurse | ? name -CMatch "[0-9]{3}_小口交通費・出張旅費精算明細書_.+_テンプレ"
-echo ($koguchiTemple + "をテンプレートとします")
+$koguchiTemple = Get-ChildItem -Recurse | ? name -CMatch '[0-9]{3}_小口交通費・出張旅費精算明細書_.+_テンプレ'
+echo ($koguchiTemple.name + "をテンプレートとします")
 
 $koguchiTempleBook = $excel.workbooks.open($koguchiTemple.fullname)
 
-# 小口を複製する
-$koguchiBook = $excel.Workbooks.add()
+# 小口を複製
+$koguchiFullpath = 'C:\Users\bvs20002\Documents\010_自習の回\06_powershell-lesson\勤務表から小口作成ツール\暫定だよ.xlsx'
+copy-item -Path $koguchiTemple.fullname -Destination $koguchiFullpath
+$koguchiBook = $excel.workbooks.open($koguchiFullpath)
 
-# ☆☆ここから☆☆
-$koguchiBook.worksheets(1).range("A1:AH68") = $koguchiTempleBook.worksheets(1).range("A1:AH68")
 
-# ファイル名変更 → これは自分でやってもらおうかなあ
-# Rename-Item '119_小口交通費・出張旅費精算明細書_名前.xlsx' "119_小口交通費・出張旅費精算明細書_名前.xlsx"
 
 # データ取得対象シートを指定する
 
@@ -97,7 +94,20 @@ $koguchiBook.worksheets(1).range("A1:AH68") = $koguchiTempleBook.worksheets(1).r
 # bookを保存
 $kinmuhyouBook.save()
 $koguchiTempleBook.save()
-$koguchiBook.saveas("C:\Users\bvs20002\Documents\010_自習の回\06_powershell-lesson\勤務表から小口作成ツール\暫定.xlsx")
+$koguchiBook.save()
+
+# ファイル名変更のための情報収集
+$koguchiTempleBook.name -match '([0-9]{3}_小口交通費・出張旅費精算明細書_)(.+)_' | Out-Null
+$gatsu = "{0:00}" -f [int]$nanngatsu
+$rename = ($matches[1] + (get-date).year + $gatsu + '_' + $matches[2])
+
+
+$kinmuhyouBook.close()
+$koguchiTempleBook.close()
+$koguchiBook.close()
+
+# ファイル名変更
+Rename-Item -Path '暫定だよ.xlsx' -NewName ($rename + '.xlsx')
 
 # Excelを閉じる
 
