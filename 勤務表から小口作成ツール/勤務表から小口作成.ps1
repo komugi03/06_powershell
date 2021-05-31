@@ -15,16 +15,16 @@
 
 # =======1.ユーザーに「何月のにします？」対話型で聞く=======
 # =======2.対象月を入力=======
-$nanngatsu = Read-Host "何月の小口を作成しますか？(半角数字で入力)"
+$nanngatsu = Read-Host '何月の小口を作成しますか？(半角数字で入力)'
 
 
 # =======3.対象の勤務表をINPUTとして受け取る=======
 $kinmuhyou = Get-ChildItem -Recurse | ? name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
 
 if($kinmuhyou -eq $null){
-    echo ($nanngatsu + "月の勤務表を用意してください")
+    echo ($nanngatsu + '月の勤務表を用意してください')
 } else {
-    echo ($nanngatsu +"月の小口を作成します")
+    echo ($nanngatsu +'月の小口を作成します')
 }
 
 # =======4.小口に入力=======
@@ -44,7 +44,7 @@ $kinmuhyouBook = $excel.workbooks.open($kinmuhyou.fullname)
 
 # 小口のテンプレをつかむ
 $koguchiTemple = Get-ChildItem -Recurse | ? name -CMatch '[0-9]{3}_小口交通費・出張旅費精算明細書_.+_テンプレ'
-echo ($koguchiTemple.name + "をテンプレートとします")
+echo ($koguchiTemple.name + ' をテンプレートとします')
 
 $koguchiTempleBook = $excel.workbooks.open($koguchiTemple.fullname)
 
@@ -53,35 +53,63 @@ $koguchiFullpath = 'C:\Users\bvs20002\Documents\010_自習の回\06_powershell-lesso
 copy-item -Path $koguchiTemple.fullname -Destination $koguchiFullpath
 $koguchiBook = $excel.workbooks.open($koguchiFullpath)
 
-
-
 # データ取得対象シートを指定する
+$kinmuSheet = $kinmuhyouBook.worksheets.item("$nanngatsu" + '月')
+echo ('「' + $kinmuSheet.name + '」シートを読み込んでいます...')
+
+$koguchiSheet = $koguchiBook.worksheets.item(1)
 
 # お台場、田町の場合のみ小口を記入
-# 「勤務内容」 or 「備考」にお台場、田町があったらループに入る
-# if
+# ★「勤務内容」or「備考」ループ開始★
+for($row = 14; $row -le 15; $row++){
 
-# ★ループ開始★
+    # お台場があったら小口に記入
+    # if(Z14:Z44で "お台場" とマッチ | AA14:AA44で "お台場" とマッチ)
+    if(($kinmuSheet.Cells.item($row,26).text -eq 'お台場') -or ($kinmuSheet.Cells.item($row,27).text -eq 'お台場')){
 
+        # ☆空白なら記入、埋まってたら下の段に移動する☆
+        
+            # 「月」に記入
+            # B11、14、17...にユーザーが入力した対象月を入れる
+            $koguchiSheet.Cells.item(11,2) = $nanngatsu
 
-# 「月」に記入
-# B11、14、17...にユーザーが入力した対象月を入れる
+            # 「日」に記入
+            # 勤務表のC列をコピペ
+            $koguchiSheet.Cells.item(11,4) = $kinmuSheet.Cells.item($row,3).text
 
-# 「日」に記入
-# C列をコピペ
+            # 「適用（行先、要件）」に記入
+            # 田町：自宅（生田）?田町
+            # お台場：自宅（生田）?作業（お台場）
 
-# 「適用（行先、要件）」に記入
-# 田町：自宅（生田）?田町
-# お台場：自宅（生田）?作業（お台場）
+            # 「区間」に記入
 
-# 「区間」に記入
+            # 「交通機関」に記入
 
-# 「交通機関」に記入
+            # 「金額」に記入
 
-# 「金額」に記入
+    }
 
+    # 田町があったら小口に記入
+    # if(Z14:Z44で "田町" とマッチ | AA14:AA44で "田町" とマッチ){}
+
+        # 「月」に記入
+        # B11、14、17...にユーザーが入力した対象月を入れる
+
+        # 「日」に記入
+        # C列をコピペ
+
+        # 「適用（行先、要件）」に記入
+        # 田町：自宅（生田）?田町
+        # お台場：自宅（生田）?作業（お台場）
+
+        # 「区間」に記入
+
+        # 「交通機関」に記入
+
+        # 「金額」に記入
 
 # ★ループ終了★
+}
 
 # 53行目じゃなかったら「適用（行先、要件）」に「以下余白」記入
 
