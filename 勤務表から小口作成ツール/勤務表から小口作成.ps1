@@ -1,7 +1,6 @@
 #
 # 勤務表から小口を作成するツール
 # 
-# 
 # お台場、田町の場合のみ小口を記入
 # 15日分記入可能
 #
@@ -65,7 +64,6 @@ $koguchiMonthRow = 11
 for($row = 14; $row -le 15; $row++){
 
     # お台場があったら小口に記入
-    # if(Z14:Z44で "お台場" とマッチ | AA14:AA44で "お台場" とマッチ)
     if(($kinmuSheet.Cells.item($row,26).text -eq 'お台場') -or ($kinmuSheet.Cells.item($row,27).text -eq 'お台場')){
         
         # ☆空白なら記入、埋まってたら下の段に移動する☆
@@ -80,15 +78,18 @@ for($row = 14; $row -le 15; $row++){
             $koguchiSheet.Cells.item($koguchiMonthRow,4) = $kinmuSheet.Cells.item($row,3).text
 
             # 「適用（行先、要件）」に記入
-            # 田町：自宅（生田）?田町
-            # お台場：自宅（生田）?作業（お台場）
+            # 田町：自宅（生田）←→田町
+            # お台場：自宅（生田）←→作業（お台場）
+            $koguchiSheet.Cells.item($koguchiMonthRow,6) = '自宅（生田）←→作業（お台場）'
 
             # 「区間」に記入
+            $koguchiSheet.Cells.item($koguchiMonthRow,18) = '生田←→東京テレポート'
 
             # 「交通機関」に記入
+            $koguchiSheet.Cells.item($koguchiMonthRow,26) = "小田急線`r`nJR埼京線`r`nりんかい線"
 
             # 「金額」に記入
-
+            $koguchiSheet.Cells.item($koguchiMonthRow,30) = '1572'
 
         }
 
@@ -97,8 +98,7 @@ for($row = 14; $row -le 15; $row++){
     }
 
     # 田町があったら小口に記入
-    # if(Z14:Z44で "田町" とマッチ | AA14:AA44で "田町" とマッチ){}
-
+    
         # 「月」に記入
         # B11、14、17...にユーザーが入力した対象月を入れる
 
