@@ -99,7 +99,7 @@ for($row = 14; $row -le 44; $row++){
 
     # 田町があったら小口に記入
     # お台場があったら小口に記入
-    if(($kinmuSheet.Cells.item($row,26).text -eq '田町') -or ($kinmuSheet.Cells.item($row,27).text -eq '田町')){
+    elseif(($kinmuSheet.Cells.item($row,26).text -eq '田町') -or ($kinmuSheet.Cells.item($row,27).text -eq '田町')){
         
         # ☆空白なら記入、埋まってたら下の段に移動する☆
         if($koguchiSheet.Cells.item($koguchiMonthRow,2).text -eq ""){
@@ -139,10 +139,18 @@ if($koguchiMonthRow -lt 53){
     $koguchiSheet.Cells.item($koguchiMonthRow,6) = '以下余白'
 }
 
-# H60に対象月を入力
+$targetDateRow = 60
+
+# D60に対象年を入力
+$koguchiSheet.Cells.item($targetDateRow,4).formula = (get-date).year
+
+# H60に対象月
+$koguchiSheet.Cells.item($targetDateRow,8) = $nanngatsu
 
 # K60に月末日を入力
-
+# ↓はコマンドラインだと30って出るのに、＝だと入らないため没
+# $koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month ($nanngatsu+1)).AddDays(-1).day
+$koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month $nanngatsu).AddMonths(1).AddDays(-1).day
 
 # bookを保存
 $kinmuhyouBook.save()
