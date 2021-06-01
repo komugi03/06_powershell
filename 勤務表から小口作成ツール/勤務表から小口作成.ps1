@@ -61,7 +61,7 @@ $koguchiMonthRow = 11
 
 # お台場、田町の場合のみ小口を記入
 # ★「勤務内容」or「備考」ループ開始★
-for($row = 14; $row -le 15; $row++){
+for($row = 14; $row -le 44; $row++){
 
     # お台場があったら小口に記入
     if(($kinmuSheet.Cells.item($row,26).text -eq 'お台場') -or ($kinmuSheet.Cells.item($row,27).text -eq 'お台場')){
@@ -98,22 +98,38 @@ for($row = 14; $row -le 15; $row++){
     }
 
     # 田町があったら小口に記入
-    
-        # 「月」に記入
-        # B11、14、17...にユーザーが入力した対象月を入れる
+    # お台場があったら小口に記入
+    if(($kinmuSheet.Cells.item($row,26).text -eq '田町') -or ($kinmuSheet.Cells.item($row,27).text -eq '田町')){
+        
+        # ☆空白なら記入、埋まってたら下の段に移動する☆
+        if($koguchiSheet.Cells.item($koguchiMonthRow,2).text -eq ""){
 
-        # 「日」に記入
-        # C列をコピペ
+            # 「月」に記入
+            # B11、14、17...にユーザーが入力した対象月を入れる
+            $koguchiSheet.Cells.item($koguchiMonthRow,2) = $nanngatsu
 
-        # 「適用（行先、要件）」に記入
-        # 田町：自宅（生田）?田町
-        # お台場：自宅（生田）?作業（お台場）
+            # 「日」に記入
+            # 勤務表のC列をコピペ
+            $koguchiSheet.Cells.item($koguchiMonthRow,4) = $kinmuSheet.Cells.item($row,3).text
 
-        # 「区間」に記入
+            # 「適用（行先、要件）」に記入
+            # 田町：自宅（生田）←→田町
+            $koguchiSheet.Cells.item($koguchiMonthRow,6) = '自宅（生田）←→田町'
 
-        # 「交通機関」に記入
+            # 「区間」に記入
+            $koguchiSheet.Cells.item($koguchiMonthRow,18) = '生田←→田町'
 
-        # 「金額」に記入
+            # 「交通機関」に記入
+            $koguchiSheet.Cells.item($koguchiMonthRow,26) = "小田急線`r`nJR山手線"
+
+            # 「金額」に記入
+            $koguchiSheet.Cells.item($koguchiMonthRow,30) = '962'
+
+        }
+
+        $koguchiMonthRow = $koguchiMonthRow + 3
+
+    }
 
 # ★ループ終了★
 }
