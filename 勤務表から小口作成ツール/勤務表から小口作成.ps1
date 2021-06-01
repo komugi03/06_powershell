@@ -135,7 +135,9 @@ for($row = 14; $row -le 44; $row++){
 }
 
 # 53行目じゃなかったら「適用（行先、要件）」に「以下余白」記入
-
+if($koguchiMonthRow -lt 53){
+    $koguchiSheet.Cells.item($koguchiMonthRow,6) = '以下余白'
+}
 
 # H60に対象月を入力
 
