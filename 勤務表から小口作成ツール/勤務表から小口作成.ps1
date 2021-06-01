@@ -92,7 +92,7 @@ for($row = 14; $row -le 15; $row++){
 
         }
 
-        $koguchiMonthRow++
+        $koguchiMonthRow = $koguchiMonthRow + 3
 
     }
 
