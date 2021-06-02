@@ -64,8 +64,7 @@ $koguchiMonthRow = 11
 for($row = 14; $row -le 44; $row++){
 
     # ‹ó”’‚Å‚È‚¢‚©‚Âİ‘îˆÈŠO
-    # if(($kinmuSheet.Cells.item($row,26).text -ne 'İ‘î') -and ($kinmuSheet.Cells.item($row,27).text -ne 'İ‘î') -and !([String]::IsNullOrEmpty($kinmuSheet.Cells.item($row,26).text)) -and !([String]::IsNullOrEmpty($kinmuSheet.Cells.item($row,27).text))){
-    if(($kinmuSheet.Cells.item($row,26).text -ne 'İ‘î') -and !([String]::IsNullOrEmpty($kinmuSheet.Cells.item($row,26).text))){
+    if((($kinmuSheet.Cells.item($row,26).text -ne 'İ‘î') -and !([String]::IsNullOrEmpty($kinmuSheet.Cells.item($row,26).text))) -or ((($kinmuSheet.Cells.item($row,27).text -ne 'İ‘î') -and !([String]::IsNullOrEmpty($kinmuSheet.Cells.item($row,27).text))))){
         
         # ‚¨‘äê‚ª‚ ‚Á‚½‚ç¬Œû‚É‹L“ü
         if(($kinmuSheet.Cells.item($row,26).text -eq '‚¨‘äê') -or ($kinmuSheet.Cells.item($row,27).text -eq '‚¨‘äê')){
