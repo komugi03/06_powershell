@@ -69,7 +69,7 @@ for($row = 14; $row -le 44; $row++){
         # お台場があったら小口に記入
         if(($kinmuSheet.Cells.item($row,26).text -eq 'お台場') -or ($kinmuSheet.Cells.item($row,27).text -eq 'お台場')){
             
-            # ☆空白なら記入、埋まってたら下の段に移動する☆
+            # 空白なら記入、埋まってたら下の段に移動する
             if($koguchiSheet.Cells.item($koguchiMonthRow,2).text -eq ""){
 
                 # 「月」に記入
@@ -164,7 +164,7 @@ $koguchiSheet.Cells.item($targetDateRow,8) = $nanngatsu
 # K60に月末日を入力
 # ↓はコマンドラインだと30って出るのに、＝だと入らないため没
 # $koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month ($nanngatsu+1)).AddDays(-1).day
-$koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month $nanngatsu).AddMonths(1).AddDays(-1).day
+$koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month $nanngatsu -day 1).AddMonths(1).AddDays(-1).day
 
 # bookを保存
 $kinmuhyouBook.save()
