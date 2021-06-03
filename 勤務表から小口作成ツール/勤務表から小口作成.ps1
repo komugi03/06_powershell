@@ -14,7 +14,22 @@
 
 # =======1.ユーザーに「何月のにします？」対話型で聞く=======
 # =======2.対象月を入力=======
-$nanngatsu = Read-Host '何月の小口を作成しますか？( ※ 半角数字で入力 ※ )'
+while($nanngatsu -notmatch '^[0-9]{1,2}$'){
+    $nanngatsu = Read-Host '何月の小口を作成しますか？( ※ 半角数字で入力 ※ )'
+
+    if($nanngatsu -match '^[0-9]{1,2}$'){
+        break
+    }else{
+        Write-Output @"
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+    半角数字のみで入力してください
+    OK: 4    NG: 4月
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+"@
+    }
+}
 
 # =======3.対象の勤務表をINPUTとして受け取る=======
 $kinmuhyou = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
