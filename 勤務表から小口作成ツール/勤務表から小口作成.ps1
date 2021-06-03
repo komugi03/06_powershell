@@ -20,13 +20,6 @@ $nanngatsu = Read-Host '何月の小口を作成しますか？( ※ 半角数字で入力 ※ )'
 $kinmuhyou = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
 
 if(!($null -eq $kinmuhyou)){
-    Write-Output @"
-■■---------------------------------
-
-    $nanngatsu 月の小口を作成します
-
----------------------------------■■
-"@
 
 } else {
     Write-Output @"
@@ -41,6 +34,38 @@ if(!($null -eq $kinmuhyou)){
     exit
 }
 
+# 現在の年でいいかを確認
+$thisYear = (get-date).year
+
+while(($nannnen -ne 'y') -or ($nannnen -ne 'n')){
+    
+    $nannnen = Read-Host "$thisYear 年 $nanngatsu 月でよろしいですか？ [ y or n ]"
+
+    if($nannnen -eq 'y'){
+        $targetYear = $thisYear
+        break
+
+    } elseif($nannnen -eq 'n') {
+        $targetYear = Read-Host '年を入力してください( ※ 半角数字で入力 ※ )'
+        break
+
+    } else {
+        Write-Output @"
+
+    y もしくは n を入力してください
+
+"@
+    }
+}
+
+Write-Output @"
+■■-------------------------------------------
+
+    それでは    
+    $thisYear 年 $nanngatsu 月の小口を作成します
+
+-------------------------------------------■■
+"@
 
 # =======4.小口に入力=======
 # すでにあるExcelのプロセスをつかむ
@@ -186,7 +211,7 @@ if($koguchiMonthRow -lt 53){
 $targetDateRow = 60
 
 # D60に対象年を入力
-$koguchiSheet.Cells.item($targetDateRow,4).formula = (get-date).year
+$koguchiSheet.Cells.item($targetDateRow,4) = $targetYear
 
 # H60に対象月
 $koguchiSheet.Cells.item($targetDateRow,8) = $nanngatsu
