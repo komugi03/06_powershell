@@ -76,7 +76,6 @@ for($row = 14; $row -le 44; $row++){
                 # B11、14、17...にユーザーが入力した対象月を入れる
                 $koguchiSheet.Cells.item($koguchiMonthRow,2) = $nanngatsu
 
-            
                 # 「日」に記入
                 # 勤務表のC列をコピペ
                 $koguchiSheet.Cells.item($koguchiMonthRow,4) = $kinmuSheet.Cells.item($row,3).text
@@ -90,7 +89,12 @@ for($row = 14; $row -le 44; $row++){
                 $koguchiSheet.Cells.item($koguchiMonthRow,18) = '生田←→東京テレポート'
 
                 # 「交通機関」に記入
-                $koguchiSheet.Cells.item($koguchiMonthRow,26) = "小田急線`r`nJR埼京線`r`nりんかい線"
+                $koguchiSheet.Cells.item($koguchiMonthRow,26) = "小田急線`r`nJR埼京線`r`nりんかい線`r`nレインボーバス"
+                
+                # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
+                if($koguchiSheet.Cells.item($koguchiMonthRow,26).text -match "^.+\n.+\n.+\n.+"){
+                    $koguchiSheet.Range("Z$koguchiMonthRow").RowHeight = 40
+                }
 
                 # 「金額」に記入
                 $koguchiSheet.Cells.item($koguchiMonthRow,30) = '1572'
@@ -125,12 +129,18 @@ for($row = 14; $row -le 44; $row++){
 
                 # 「交通機関」に記入
                 $koguchiSheet.Cells.item($koguchiMonthRow,26) = "小田急線`r`nJR山手線"
+                
+                # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
+                if($koguchiSheet.Cells.item($koguchiMonthRow,26).text -match "^.+\n.+\n.+\n.+"){
+                    $koguchiSheet.Range("Z$koguchiMonthRow").RowHeight = 40
+                }
 
                 # 「金額」に記入
                 $koguchiSheet.Cells.item($koguchiMonthRow,30) = '962'
 
             }
 
+            # 行カウンタのカウントアップ
             $koguchiMonthRow = $koguchiMonthRow + 3
 
         }
@@ -141,6 +151,7 @@ for($row = 14; $row -le 44; $row++){
             # 「日」に記入
             $koguchiSheet.Cells.item($koguchiMonthRow,4) = $kinmuSheet.Cells.item($row,3).text
 
+            # 行カウンタのカウントアップ
             $koguchiMonthRow = $koguchiMonthRow + 3
         }
     }
@@ -162,8 +173,6 @@ $koguchiSheet.Cells.item($targetDateRow,4).formula = (get-date).year
 $koguchiSheet.Cells.item($targetDateRow,8) = $nanngatsu
 
 # K60に月末日を入力
-# ↓はコマンドラインだと30って出るのに、＝だと入らないため没
-# $koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month ($nanngatsu+1)).AddDays(-1).day
 $koguchiSheet.Cells.item($targetDateRow,11) = (Get-Date -month $nanngatsu -day 1).AddMonths(1).AddDays(-1).day
 
 # bookを保存
