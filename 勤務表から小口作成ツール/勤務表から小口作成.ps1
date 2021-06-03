@@ -14,17 +14,33 @@
 
 # =======1.ユーザーに「何月のにします？」対話型で聞く=======
 # =======2.対象月を入力=======
-$nanngatsu = Read-Host '何月の小口を作成しますか？(半角数字で入力)'
-
+$nanngatsu = Read-Host '何月の小口を作成しますか？( ※ 半角数字で入力 ※ )'
 
 # =======3.対象の勤務表をINPUTとして受け取る=======
-$kinmuhyou = Get-ChildItem -Recurse | ? name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
+$kinmuhyou = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_勤務表_($nanngatsu)月_.+"
 
-if($kinmuhyou -eq $null){
-    echo ($nanngatsu + '月の勤務表を用意してください')
+if(!($null -eq $kinmuhyou)){
+    Write-Output @"
+■■---------------------------------
+
+    $nanngatsu 月の小口を作成します
+
+---------------------------------■■
+"@
+
 } else {
-    echo ($nanngatsu +'月の小口を作成します')
+    Write-Output @"
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+
+    $nanngatsu 月の勤務表が見つかりませんでした
+    $nanngatsu 月の勤務表を用意し、ps1ファイルを実行しなおしてください
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+"@
+    # 処理を終了させる
+    exit
 }
+
 
 # =======4.小口に入力=======
 # すでにあるExcelのプロセスをつかむ
@@ -43,8 +59,6 @@ $kinmuhyouBook = $excel.workbooks.open($kinmuhyou.fullname)
 
 # 小口のテンプレをつかむ
 $koguchiTemple = Get-ChildItem -Recurse | ? name -CMatch '[0-9]{3}_小口交通費・出張旅費精算明細書_.+_テンプレ'
-echo ($koguchiTemple.name + ' をテンプレートとします')
-
 $koguchiTempleBook = $excel.workbooks.open($koguchiTemple.fullname)
 
 # 小口を複製
@@ -54,7 +68,12 @@ $koguchiBook = $excel.workbooks.open($koguchiFullpath)
 
 # データ取得対象シートを指定する
 $kinmuSheet = $kinmuhyouBook.worksheets.item("$nanngatsu" + '月')
-echo ('「' + $kinmuSheet.name + '」シートを読み込んでいます...')
+Write-Output @"
+
+    作成中です...
+    しばらくお待ちください...
+
+"@
 
 $koguchiSheet = $koguchiBook.worksheets.item(1)
 $koguchiMonthRow = 11
@@ -192,6 +211,15 @@ $koguchiBook.close()
 
 # ファイル名変更
 Rename-Item -Path '暫定だよ.xlsx' -NewName ($rename + '.xlsx')
+
+Write-Output @"
+---------------------------------------------------------------------------
+
+    お待たせしました！
+    $rename.xlsx を作成しました
+
+---------------------------------------------------------------------------
+"@ 
 
 # Excelを閉じる
 
