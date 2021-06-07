@@ -111,7 +111,7 @@ $koguchiTemple = Get-ChildItem -Recurse | ? name -CMatch '[0-9]{3}_¬ŒûŒğ’Ê”ïE
 $koguchiTempleBook = $excel.workbooks.open($koguchiTemple.fullname)
 
 # ¬Œû‚ğ•¡»
-$koguchiFullpath = 'C:\Users\bvs20002\Documents\010_©K‚Ì‰ñ\06_powershell-lesson\‹Î–±•\‚©‚ç¬Œûì¬ƒc[ƒ‹\b’è‚¾‚æ.xlsx'
+$koguchiFullpath = 'C:\Users\bvs20002\Documents\010_©K‚Ì‰ñ\06_powershell-lesson\‹Î–±•\‚©‚ç¬Œûì¬ƒc[ƒ‹\ì‹Æ’†.xlsx'
 copy-item -Path $koguchiTemple.fullname -Destination $koguchiFullpath
 $koguchiBook = $excel.workbooks.open($koguchiFullpath)
 
@@ -248,18 +248,58 @@ $kinmuhyouBook.save()
 $koguchiTempleBook.save()
 $koguchiBook.save()
 
-# ƒtƒ@ƒCƒ‹–¼•ÏX‚Ì‚½‚ß‚Ìî•ñûW
+# ----------------------ƒtƒ@ƒCƒ‹–¼•ÏX‚Ì‚½‚ß‚Ìî•ñûW----------------------
+# ƒeƒ“ƒvƒŒ‚Ìƒtƒ@ƒCƒ‹–¼‚ğƒOƒ‹[ƒv‰»
 $koguchiTempleBook.name -match '([0-9]{3}_¬ŒûŒğ’Ê”ïEo’£—·”ï¸Z–¾×‘_)(.+)_' | Out-Null
+# 4 ‚ğ 04 ‚É‚·‚é‚æ‚¤‚ÈƒtƒH[ƒ}ƒbƒg‚É•ÏX
 $gatsu = "{0:00}" -f [int]$nanngatsu
-$rename = ($matches[1] + (get-date).year + $gatsu + '_' + $matches[2])
 
+# ƒtƒ@ƒCƒ‹–¼‚Ì•ÏX‚Ég—p‚·‚é•¶š—ñ‚ğ—pˆÓ
+# $matches[1]: <”Ô†>_¬ŒûŒğ’Ê”ïEo’£—·”ï¸Z–¾×‘_
+# $matches[2]: <–¼>
+$rename = ($matches[1] + $thisYear + $gatsu + '_' + $matches[2])
+
+# “¯‚¶Œ‚Ì¬Œû‚Ì‘¶İƒ`ƒFƒbƒN
+if(Test-path ($rename +@'_[0-9]' + '.xlsx')){
+
+    # 2‚ÂˆÈã‘¶İ‚µ‚Ä‚éê‡
+    # 119_¬ŒûŒğ’Ê”ïEo’£—·”ï¸Z–¾×‘_202104_¼àV_1i”šj‚ª‚ ‚é
+
+    # “¯‚¶Œ‚Ì¬Œû‚Ìƒtƒ@ƒCƒ‹–¼‚ğæ“¾(_1‚È‚Ç”š‚ª‚Â‚¢‚Ä‚¢‚é)
+    $onajiFileName = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_¬ŒûŒğ’Ê”ïEo’£—·”ï¸Z–¾×‘_.+_.+_"
+    
+    # Å‘å‚Ì”š‚ğ’T‚·
+    $splitBy_FileName = $onajiFileName -split "_"
+
+    for($i = 4; $i -lt (($onajiFileName.count)*5); $i = $i + 5){
+
+        # u1.xlsxv‚Ì”š•”•ª‚ğ”²‚«o‚µ‚ÄƒCƒ“ƒNƒŠƒƒ“ƒg‚Å‚«‚é‚æ‚¤‚É”š‚É‚·‚é
+        $fileNameCount = [int]($splitBy_FileName[$i].Substring(0,1))
+        $fileNameCount
+    }
+
+    # ƒtƒ@ƒCƒ‹–¼‚Ì––”ö‚Ì”š•”•ª‚ğƒCƒ“ƒNƒŠƒƒ“ƒg
+    $fileNameCount = $fileNameCount + 1
+
+
+    # ƒtƒ@ƒCƒ‹–¼‚Ì•ÏX‚Ég—p‚·‚é•¶š—ñ‚ğ—pˆÓ
+    $rename = ($rename + '_' + $fileNameCount)
+
+}elseif(Test-path ($rename + '.xlsx')){
+    # if($matches[3] -match '[0-9]'){
+        
+        # ‚·‚Å‚É“¯‚¶Œ‚Ì¬Œû‚ª‘¶İ‚µ‚Ä‚é(1‚Â‚¾‚¯)
+        # 119_¬ŒûŒğ’Ê”ïEo’£—·”ï¸Z–¾×‘_202104_¼àV‚ª‚ ‚é
+        $rename = ($rename + '_1')
+    
+}
 
 $kinmuhyouBook.close()
 $koguchiTempleBook.close()
 $koguchiBook.close()
 
 # ƒtƒ@ƒCƒ‹–¼•ÏX
-Rename-Item -Path 'b’è‚¾‚æ.xlsx' -NewName ($rename + '.xlsx')
+Rename-Item -Path 'ì‹Æ’†.xlsx' -NewName ($rename + '.xlsx')
 
 Write-Output @"
 ---------------------------------------------------------------------------
@@ -270,6 +310,6 @@ Write-Output @"
 ---------------------------------------------------------------------------
 "@ 
 
-# Excel‚ğ•Â‚¶‚é
+# Excel‚ğ•Â‚¶‚é(‚»‚Ì‘¼‚ÉŠJ‚¢‚Ä‚¢‚éExcel‚à•Â‚¶‚¿‚á‚¤‚©‚ç—vŒŸ“¢)
 
 # •Ï”‚Ì‰ğ•ú
