@@ -66,10 +66,12 @@ $today = (Get-Date).Day
 # 現在日時から作成するべき勤務表の月次を判定
 # 24日までは当月分を作る
 if ($today -le 24) {
-    $month = $thisMonth - 1
+    # 前の月を小口作成の対象月とする
+    $targetMonth = (Get-date).AddMonths(-1).month
 }
 else {
-    $month = $thisMonth
+    # 今月を小口作成の対象月とする
+    $targetMonth = $thisMonth
 }
 
 # ---------------アセンブリの読み込み---------------
@@ -78,8 +80,13 @@ Add-Type -AssemblyName System.Drawing
 # # INPUTのために必要
 # [void][System.Reflection.Assembly]::Load("Microsoft.VisualBasic, Version=8.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a")
 
-$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $month 月 】の小口でよろしいですか？",'作成する小口の対象年月','YesNo','Question')
+# (現在日によって変わるので、get-date -Format Y にはしていない)
+$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？",'作成する小口の対象年月','YesNo','Question')
 
+# 今年を小口作成の対象年とする
+$targetYear = $thisYear
+
+# ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ開始☆
 if($yesNo_yearMonthAreCorrect -eq 'No'){
     
     # フォントの指定
@@ -147,18 +154,67 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 
     # 選択後、OKボタンが押された場合、選択項目を表示
     if ($result -eq "OK"){
-        $comboAnswer = $Combo.Text
-        # 選択結果の年を取得
-        # ☆テキストからとる☆
-        $targetYear = $comboAnswer -split "年"
-        $targetYear
+        # ユーザーの回答を"年"で区切る
+        $comboAnswer = $Combo.Text -split "年"
+
+        # ユーザー指定の年を小口作成の対象年として上書する
+        $targetYear = $comboAnswer[0]
+
+        # ユーザー指定の月を小口作成の対象月として上書きする
+        $targetMonth = $comboAnswer[1] -split "月"
 
     }else{
-    exit
+        # 処理を終了する
+        exit
     }
-
-    Write-Output $comboAnswer
-
-
-
+    
+# ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
+
+
+echo "$targetYear 年の"
+echo "$targetMonth 月の小口を作成します"
+
+
+
+# -------（場所迷い中）---------------小口テンプレを取得------------------------
+$koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "小口交通費・出張旅費精算明細書_テンプレ.xlsx"
+# 該当小口ファイルの個数確認
+if ($koguchiTemplate.Count -lt 1) {
+    Write-Host "`r`n該当する小口ファイルが存在しません`r`n`r`nダウンロードし直してください`r`n" -ForegroundColor Red
+    exit
+}
+elseif ($koguchiTemplate.Count -gt 1) {
+    Write-Host "`r`n該当する小口ファイルが多すぎます`r`n`r`nダウンロードし直してください`r`n" -ForegroundColor Red
+    exit
+}
+
+# ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
+# 作成した小口を格納するフォルダに、テンプレートをコピーする
+# ※フォルダが存在していないとエラーが出る
+$koguchi = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath "小口交通費・出張旅費精算明細書_コピー.xlsx"
+Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
+
+# 勤務表ファイルを取得
+$kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match "[0-9]{3}_勤務表_($targetMonth)月_.+"
+
+# 該当勤務表ファイルの個数確認
+if ($kinmuhyou.Count -lt 1) {
+    Write-Host "`r`n該当する勤務表ファイルが存在しません`r`n" -ForegroundColor Red
+    exit
+}
+elseif ($kinmuhyou.Count -gt 1) {
+    Write-Host "`r`n該当する勤務表ファイルが多すぎます`r`n" -ForegroundColor Red
+    exit
+}
+
+
+
+
+
+
+
+
+
+
+# 勤務表からとってくる勤務地の情報は「勤務内容」の列からだけでOK
