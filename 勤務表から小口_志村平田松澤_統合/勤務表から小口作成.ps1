@@ -4,6 +4,13 @@
 # 勤務表のファイル名：<3桁の社員番号>_勤務表_m月_<氏名>.xlsx
 # 
 
+# ---------------アセンブリの読み込み---------------
+Add-Type -Assembly System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+# # INPUTのために必要?
+# [void][System.Reflection.Assembly]::Load("Microsoft.VisualBasic, Version=8.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a")
+
+
 # ----------------- 関数定義 ---------------------
 
 # 勤務表と小口を保存せずに閉じて、Excelを中断する関数
@@ -54,6 +61,30 @@ function removeInvalidFileNameChars ($fileName) {
     return $fileNameRemovedSpace -replace $regex
 }
 
+# フォーム全体の設定をする関数
+# formText : フォームの本文（文字列）
+# formYoko : フォームの横幅
+# formTate : フォームの縦幅
+function makeForm ($formText, $formYoko, $formTate) {
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = $formText
+    $form.Size = New-Object System.Drawing.Size($formYoko,$formTate)
+    $form.StartPosition = "CenterScreen"
+    $form.font = $Font
+}
+
+# ラベルを表示する関数
+# $labelText : ラベルに書き込む文字列
+# $form : フォームオブジェクト
+function makeLabel ($labelText, $form) {
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,10)
+    $label.Size = New-Object System.Drawing.Size(270,30)
+    $label.Text = $labelText
+    $form.Controls.Add($label)
+    return $form
+}
+
 # -------------------- 主処理 --------------------------
 
 ##### 注意書きを表示。問題ない場合にはEnterを押させる。#####
@@ -74,11 +105,6 @@ else {
     $targetMonth = $thisMonth
 }
 
-# ---------------アセンブリの読み込み---------------
-Add-Type -Assembly System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-# # INPUTのために必要
-# [void][System.Reflection.Assembly]::Load("Microsoft.VisualBasic, Version=8.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a")
 
 # (現在日によって変わるので、get-date -Format Y にはしていない)
 $yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？`r`n`r`n「いいえ」で他の月を選択できます",'作成する小口の対象年月','YesNo','Question')
@@ -171,21 +197,23 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 # ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
 
-
 echo "$targetYear 年の"
 echo "$targetMonth 月の小口を作成します"
 
-
+# ポップアップを作成
+$popup = new-object -comobject wscript.shell
 
 # -------（場所迷い中）---------------小口テンプレを取得------------------------
 $koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "小口交通費・出張旅費精算明細書_テンプレ.xlsx"
 # 該当小口ファイルの個数確認
 if ($koguchiTemplate.Count -lt 1) {
-    Write-Host "`r`n該当する小口ファイルが存在しません`r`n`r`nダウンロードし直してください`r`n" -ForegroundColor Red
+    # ポップアップを表示
+    $popup.popup("該当する小口ファイルのテンプレートが存在しません`r`n`r`nダウンロードし直してください",0,"やり直してください",48) | Out-Null
     exit
 }
 elseif ($koguchiTemplate.Count -gt 1) {
-    Write-Host "`r`n該当する小口ファイルが多すぎます`r`n`r`nダウンロードし直してください`r`n" -ForegroundColor Red
+    # ポップアップを表示
+    $popup.popup("該当する小口ファイルのテンプレートが多すぎます`r`n`r`nダウンロードし直してください",0,"やり直してください",48) | Out-Null
     exit
 }
 
@@ -200,6 +228,8 @@ $kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match "[0-9]{3}_勤務表_($tar
 
 # 該当勤務表ファイルの個数確認
 if ($kinmuhyou.Count -lt 1) {
+    
+    # フォームを作成
     Write-Host "`r`n該当する勤務表ファイルが存在しません`r`n" -ForegroundColor Red
     exit
 }
@@ -208,6 +238,48 @@ elseif ($kinmuhyou.Count -gt 1) {
     exit
 }
 
+# 処理を始める前に、ファイルの存在チェックとファイル名のチェックを行う
+if ( $kinmuhyou.Name -match "[0-9]{3}_勤務表_([1-9]|1[12])月_.+\.xlsx" ) {
+    Start-Sleep -milliSeconds 300
+
+    try {
+        # 勤務表ファイルのフルパス取得
+        $kinmuhyouFullPath = $kinmuhyou.FullName 
+    }
+    catch [Exception] {
+        # 勤務表が存在しているかチェック
+        Write-Host ($targetMonth + "月の勤務表ファイルが存在しません。`r`nダウンロードしてください`r`n") -ForegroundColor Red
+        exit
+    }
+
+    displaySharpMessage "White" ([string]$targetMonth + " 月の小口交通費請求書を作成します。") "しばらくお待ちください。"
+}
+else {
+    # 勤務表ファイルのフォーマットが違う場合は修正させる
+    Write-Host " ######### <社員番号>_勤務表_m月_<氏名>.xlsx の形式にファイル名を修正してください #########`r`n" -ForegroundColor Red
+    exit
+}
+
+# ----------------------Excelを起動する--------------------------------
+try {
+    # 起動中のExcelプロセスを取得
+    $excel = [System.Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
+}
+catch {
+    $excel = New-Object -ComObject "Excel.Application" 
+}
+
+# Excelがメッセージダイアログを表示しないようにする
+$excel.DisplayAlerts = $false
+$excel.visible = $false
+
+# 勤務表ブックを開く
+$kinmuhyouBook = $excel.workbooks.open($kinmuhyouFullPath)
+$kinmuhyouSheet = $kinmuhyouBook.sheets( "$targetMonth" + '月')
+
+# 小口ブックを開く
+$koguchiBook = $excel.workbooks.open($koguchi)
+$koguchiSheet = $koguchiBook.sheets(1)
 
 
 
@@ -215,6 +287,22 @@ elseif ($kinmuhyou.Count -gt 1) {
 
 
 
-
+# 最後は「開く」「終了」の2択
+# 開く→できあがったところのエクスプローラーを表示する
 
 # 勤務表からとってくる勤務地の情報は「勤務内容」の列からだけでOK
+
+# テキストは全部読み込んで、配列に入れちゃう
+# 規則的だから、規則性にそっていれてく
+# 1行目の品川、5行目のお台場だけ持ってくる？
+# 勤務表の内容とマッチするか検証して、マッチしてたら小口に配列の内容をコピーする。
+# みたいな！
+
+# 処理中のダイアログを表示させる（バーとかでるといいね）
+
+# 最終的に、バッチファイルの形にする（.batにする）
+# バッチファイルをたたいてもpowershellぽい画面が出ないようにする。
+
+# 志村のテキスト作成バッチで各作業場所の詳細設定 → 松澤のバッチ　→　
+# ★READMEをつくる      どういう形式にするかは迷い中。
+# ★ショートカットを作る    バッチファイルのショートカットを作成。簡単に作れるのであれば作らない。
