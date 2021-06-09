@@ -81,7 +81,7 @@ Add-Type -AssemblyName System.Drawing
 # [void][System.Reflection.Assembly]::Load("Microsoft.VisualBasic, Version=8.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a")
 
 # (現在日によって変わるので、get-date -Format Y にはしていない)
-$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？",'作成する小口の対象年月','YesNo','Question')
+$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？`r`n`r`n「いいえ」で他の月を選択できます",'作成する小口の対象年月','YesNo','Question')
 
 # 今年を小口作成の対象年とする
 $targetYear = $thisYear
@@ -95,7 +95,7 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
     # フォーム全体の設定
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "作成する小口の対象年月"
-    $form.Size = New-Object System.Drawing.Size(300,200)
+    $form.Size = New-Object System.Drawing.Size(265,200)
     $form.StartPosition = "CenterScreen"
     $form.font = $Font
 
@@ -167,7 +167,7 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
         # 処理を終了する
         exit
     }
-    
+
 # ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
 
