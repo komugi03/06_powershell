@@ -85,7 +85,7 @@ function makeLabel ($labelText, $form) {
     return $form
 }
 
-# -------------------- 主処理 --------------------------
+# -------------------- 主処理の準備 --------------------------
 
 ##### 注意書きを表示。問題ない場合にはEnterを押させる。#####
 
@@ -205,36 +205,44 @@ $popup = new-object -comobject wscript.shell
 
 # -------（場所迷い中）---------------小口テンプレを取得------------------------
 $koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "小口交通費・出張旅費精算明細書_テンプレ.xlsx"
-# 該当小口ファイルの個数確認
+# 小口テンプレの個数確認
 if ($koguchiTemplate.Count -lt 1) {
     # ポップアップを表示
-    $popup.popup("該当する小口ファイルのテンプレートが存在しません`r`n`r`nダウンロードし直してください",0,"やり直してください",48) | Out-Null
+    $popup.popup("小口ファイルのテンプレートが存在しません`r`nダウンロードし直してください",0,"やり直してください",48) | Out-Null    
     exit
 }
 elseif ($koguchiTemplate.Count -gt 1) {
     # ポップアップを表示
-    $popup.popup("該当する小口ファイルのテンプレートが多すぎます`r`n`r`nダウンロードし直してください",0,"やり直してください",48) | Out-Null
+    $popup.popup("小口ファイルのテンプレートが多すぎます`r`n1つにしてください",0,"やり直してください",48) | Out-Null
     exit
 }
 
-# ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
 # 作成した小口を格納するフォルダに、テンプレートをコピーする
-# ※フォルダが存在していないとエラーが出る
+
+# 小口格納フォルダが存在していない場合は作成する
+if(!(Test-Path $PWD"\作成した小口交通費請求書")){
+    New-Item -Path $PWD"\作成した小口交通費請求書" -ItemType Directory | Out-Null
+}
+
 $koguchi = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath "小口交通費・出張旅費精算明細書_コピー.xlsx"
 Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 
+# ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
 # 勤務表ファイルを取得
 $kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match "[0-9]{3}_勤務表_($targetMonth)月_.+"
 
 # 該当勤務表ファイルの個数確認
 if ($kinmuhyou.Count -lt 1) {
     
-    # フォームを作成
-    Write-Host "`r`n該当する勤務表ファイルが存在しません`r`n" -ForegroundColor Red
+    # ポップアップを表示
+    $popup.popup("$targetMonth 月の勤務表ファイルが存在しません",0,"やり直してください",48) | Out-Null
+    Remove-Item -Path $koguchi
     exit
 }
 elseif ($kinmuhyou.Count -gt 1) {
-    Write-Host "`r`n該当する勤務表ファイルが多すぎます`r`n" -ForegroundColor Red
+    # ポップアップを表示
+    $popup.popup("$targetMonth 月の勤務表ファイルが多すぎます`r`n1つにしてください",0,"やり直してください",48) | Out-Null
+    Remove-Item -Path $koguchi
     exit
 }
 
@@ -248,7 +256,7 @@ if ( $kinmuhyou.Name -match "[0-9]{3}_勤務表_([1-9]|1[12])月_.+\.xlsx" ) {
     }
     catch [Exception] {
         # 勤務表が存在しているかチェック
-        Write-Host ($targetMonth + "月の勤務表ファイルが存在しません。`r`nダウンロードしてください`r`n") -ForegroundColor Red
+        $popup.popup("$targetMonth 月の勤務表ファイルが存在しません。`r`nダウンロードしてください",0,"やり直してください",48) | Out-Null
         exit
     }
 
@@ -282,7 +290,12 @@ $koguchiBook = $excel.workbooks.open($koguchi)
 $koguchiSheet = $koguchiBook.sheets(1)
 
 
+# ------------- 勤務表の中身を小口にコピーする ----------------
 
+# ------------- 個人情報欄のコピー --------------
+
+# 小口の縦列カウンター
+$rowCounter = 11
 
 
 
