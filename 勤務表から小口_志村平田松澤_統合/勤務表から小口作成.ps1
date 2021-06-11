@@ -182,13 +182,13 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
     # 選択後、OKボタンが押された場合、選択項目を表示
     if ($result -eq "OK"){
         # ユーザーの回答を"年"で区切る
-        $comboAnswer = $Combo.Text -split "年"
+        $Combo.Text -match "(?<year>.+?)年(?<month>.+?)月" | out-null
 
         # ユーザー指定の年を小口作成の対象年として上書する
-        $targetYear = $comboAnswer[0]
+        $targetYear = $Matches.year
 
         # ユーザー指定の月を小口作成の対象月として上書きする
-        $targetMonth = $comboAnswer[1] -split "月"
+        $targetMonth = $Matches.month
 
     }else{
         # 処理を終了する
@@ -273,33 +273,38 @@ catch {
 
 # Excelがメッセージダイアログを表示しないようにする
 $excel.DisplayAlerts = $false
-$excel.visible = $false
+$excel.visible = $true
+
+# 勤務表のフルパス
+$kinmuhyouFullPath = $kinmuhyou.FullName 
 
 # 勤務表ブックを開く
 $kinmuhyouBook = $excel.workbooks.open($kinmuhyouFullPath)
-$kinmuhyouSheet = $kinmuhyouBook.sheets( "$targetMonth" + '月')
+write-host ([String]$targetMonth + '月')
+$kinmuhyouSheet = $kinmuhyouBook.worksheets.item([String]$targetMonth + '月')
+echo "($kinmuhyouSheet).name シート"
 
 # 小口ブックを開く
 $koguchiBook = $excel.workbooks.open($koguchi)
 $koguchiSheet = $koguchiBook.sheets(1)
 
+echo "book開けてるよ"
+
 
 # ------------- 勤務表の中身を小口にコピーする ----------------
 # 「勤務内容」欄に書かれている勤務地を参考にして、勤務地情報リストファイルから該当情報を小口に記入する
 
-# 小口の縦列カウンター
+# 小口の行カウンター
 $koguchiRowCounter = 11
 
 # 勤務表の1日～月末まで1行ずつ繰り返す
 for ($row = 14; $row -le 44; $row++) {
     # 勤務地判定のために「勤務内容」欄の文字列を取得
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
+    Write-Host ("勤務地：" + $workPlace)
     
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
-        # 1. 小口に月日を記入
-        $koguchiSheet.cells.item($koguchiRowCounter, 2) = $targetMonth
-        $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
         
         # ------------- 変数定義 ---------------
         # 適用(開始位置)
@@ -311,41 +316,85 @@ for ($row = 14; $row -le 44; $row++) {
         # 金額(開始位置)
         $kingaku = 30
         
-        # テキストは全部読み込んで、配列に入れちゃう
-        # 規則的だから、規則性にそっていれてく
-        # 1行目の品川、5行目のお台場だけ持ってくる？
-        # 勤務表の内容とマッチするか検証して、マッチしてたら小口に配列の内容をコピーする。
-        # みたいな！
-        
         # ---------------勤務地情報リストを読み込む---------------------
-        if(Test-Path $PWD"\ツール用引数.txt"){
+        # 勤務地情報リストが書いてあるテキスト
+        $infoTextFileName = "ツール用引数.txt"
+        $infoTextFileFullpath = "$PWD\$infoTextFileName"
+        
+        # 勤務地情報リストテキストが存在したときの処理
+        if(Test-Path $infoTextFileFullpath){
             
-            $argumentText = (Get-Content $PWD"\ツール用引数.txt")
+            $argumentText = (Get-Content $infoTextFileFullpath)
             
-            # 勤務地の情報をリストから取得 ( 配列の中身　[0]:適用　[1]:区間　[2]:交通機関　[3]:金額 )
+            # 「勤務内容」欄の文字列にマッチした勤務地の情報を、リストから取得 ( 配列の中身　[0]:適用　[1]:区間　[2]:交通機関　[3]:金額 )
             $workPlaceInfo = $argumentText | Select-String -Pattern ($workPlace + '_')
+            Write-Host ("勤務地list：" + $workPlaceInfo)
             
             # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
             if($workPlaceInfo -eq $null){
                 # ポップアップを表示
-                $popup.popup("勤務地の情報が登録されていない`r`nもしくは`r`n勤務地の情報と異なる書き方の可能性があります`r`n上記2点を確認し、やり直してください",0,"やり直してください",48) | Out-Null
-
+                $popup.popup("勤務地の情報が登録されていない`r`n初期設定もしくは上書きし、やり直してください or ボタンを押して設定してね",0,"やり直してください",48) | Out-Null
+                
                 # 処理を中断し、終了
                 breakExcel
                 exit
+                
+            }
+            
+            # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
+            elseif(([String]$workPlaceInfo[0]) -eq '1'){
+                # 小口に記入しない
+            }
+            
+            # 上記以外の場合、小口に書き込む
+            else{
+                # 空白なら記入、埋まってたら下の段に移動する
+                if($koguchiSheet.Cells.item($koguchiRowCounter,2).text -eq ""){
+                    
+                    # 「月」に記入
+                    # B11、14、17...にユーザーが入力した対象月を入れる
+                    $koguchiSheet.cells.item($koguchiRowCounter, 2) = $targetMonth
+                    
+                    # 「日」に記入
+                    # 勤務表のC列をコピペ
+                    $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
+                    
+                    # 「適用（行先、要件）」に記入
+                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring(4, ([String]$workPlaceInfo[0]).Length - 4)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,6) = $tekiyouText
+
+                    # 「区間」に記入
+                    $kukanText = ([String]$workPlaceInfo[1]).Substring(4, ([String]$workPlaceInfo[1]).Length - 4)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,18) = $kukanText
+
+                    # 「交通機関」に記入
+                    # ☆交通機関の改行がうまく入力されない！☆
+                    $koutsukikanText = "([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - 4)"
+                    $koguchiSheet.Cells.item($koguchiRowCounter,26) = $koutsukikanText
+                    
+                    # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
+                    if($koguchiSheet.Cells.item($koguchiRowCounter,26).text -match "^.+\n.+\n.+\n.+"){
+                        $koguchiSheet.Range("Z$koguchiRowCounter").RowHeight = 40
+                    }
+
+                    # 「金額」に記入
+                    $kingakuText = ([String]$workPlaceInfo[3]).Substring(4, ([String]$workPlaceInfo[3]).Length - 4)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,30) = $kingakuText
+
+                }
+
+                # 小口の行カウンターに3を追加し、次の行にする
+                $koguchiRowCounter = $koguchiRowCounter + 3
 
             }
-
-        
+            
+        # 勤務地情報リストテキストが存在したときの処理終了
         }else{
-            Write-Output "ファイルはありません"
+            # ポップアップを表示
+            $popup.popup("勤務地の情報リストが見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
         }
-
-        # お台場があったら小口に記入
-        if($workPlace -eq 'お台場'){
-
-        }
-
+        
+        # 「勤務内容」欄が空欄or在宅の処理終了
     }
 
 }
@@ -399,15 +448,27 @@ if ($koguchiSheet.shapes.count -eq $numberOfObject) {
 
 # 印鑑がないかもしれない場合注意喚起
 if ($haveNotStamp) {
+
     displaySharpMessage "Blue" "印鑑が勤務表に入っていない、または既定のセルからずれている可能性があります" "確認してください"
 }
 
 # 文字色の変更（全部黒に）
 $koguchiSheet.range("A1:BN90").font.colorindex = 1
 
+# ×ボタンを押したとき、処理途中のものを削除しよう
+
 
 # 最後は「開く」「終了」の2択
 # 開く→できあがったところのエクスプローラーを表示する
+
+
+# $kinmuhyouBook.save()
+$koguchiBook.save()
+
+$kinmuhyouBook.close()
+$koguchiBook.close()
+
+# Rename-Item -path $koguchi -NewName $newKoguchiPath -ErrorAction:Stop
 
 # 勤務表からとってくる勤務地の情報は「勤務内容」の列からだけでOK
 
