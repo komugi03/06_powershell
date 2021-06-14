@@ -28,8 +28,8 @@ function breakExcel {
     $koguchiCell = $null
     # ガベージコレクト
     [GC]::Collect()
-    # 処理を終了する
-    exit
+    # # 処理を終了する
+    # exit
 }
 
 # # シャープを使ったメッセージの表示をする関数
@@ -234,14 +234,14 @@ Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 # ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
 
 # ファイル名の勤務表_のあとの表記
-$fileNameMonth = "$targetMonth 月"
+$fileNameMonth = [string]("$targetMonth" + "月")
 
 # もし「勤務表_202104」のような表記にするなら ↑ をコメントアウトして ↓ のコメントアウトをぬく
 # $targetMonth00 = "{0:00}" -f [int]$targetMonth
 # $fileNameMonth = ($targetYear + $targetMonth00)
 
 # 勤務表ファイルを取得
-$kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match "[0-9]{3}_勤務表_$fileNameMonth_.+"
+$kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match ("[0-9]{3}_勤務表_" + "$fileNameMonth" + "_.+")
 
 # 該当勤務表ファイルの個数確認
 if ($kinmuhyou.Count -lt 1) {
@@ -303,7 +303,7 @@ for ($row = 14; $row -le 44; $row++) {
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
     Write-Host ("勤務地：" + $workPlace)
     $workPlaceLength = [int]$workPlace.length + 1
-    write-host ('$workPlaceの文字数：' + $workPlaceLength)
+    write-host ('$workPlaceと＿の文字数：' + $workPlaceLength)
     
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
@@ -335,17 +335,20 @@ for ($row = 14; $row -le 44; $row++) {
             # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
             if($workPlaceInfo -eq $null){
                 # ポップアップを表示
-                $popup.popup("勤務地の情報が登録されていない`r`n初期設定もしくは上書きし、やり直してください or ボタンを押して設定してね",0,"やり直してください",48) | Out-Null
+                $popup.popup("勤務地の情報が登録されていません`r`n初期設定もしくは上書きし、やり直してください",0,"やり直してください",48) | Out-Null
                 
                 # 処理を中断し、終了
                 breakExcel
+                Remove-Item -Path $koguchi
                 exit
                 
             }
             
             # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
-            elseif(([String]$workPlaceInfo[0]) -eq '1'){
+            elseif(([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength) -eq '1'){
                 # 小口に記入しない
+
+                write-host "!!!!!!zaitaku!!!!!!"
             }
             
             # 上記以外の場合、小口に書き込む
@@ -362,29 +365,18 @@ for ($row = 14; $row -le 44; $row++) {
                     $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
                     
                     # 「適用（行先、要件）」に記入
-                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring(4, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
+                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,6) = $tekiyouText
 
                     # 「区間」に記入
-                    $kukanText = ([String]$workPlaceInfo[1]).Substring(4, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
+                    $kukanText = ([String]$workPlaceInfo[1]).Substring($workPlaceLength, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,18) = $kukanText
 
                     # 「交通機関」に記入
-                    # ☆交通機関の改行がうまく入力されない！☆
-                    # Stringにしてるからでは？？
 
-                    # テキストを直接とるのはやめる。改行コードを取り出して、再度埋め込む
-                    # replaceで `r`n を "`r`n" にする？だめ
-                    # splitで区切って、配列ごとに改行コードを足してあげる
-                    # お台場_小田急線`r`nJR山手線`r`nりんかい線
-                    # 小田急線`r`nJR山手線`r`nりんかい線
-                    # 小田急線JR山手線りんかい線
-                    # 配列の数繰り返して、配列の最後ならやらない
-                    # 小田急線`r`nJR山手線`r`nりんかい線`r`n
-                    
                     # 最初のお台場_を取り除いた文字列にする
                     # 小田急線`r`nJR山手線`r`nりんかい線　の状態
-                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
+                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring($workPlaceLength, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
                     $koutsukikanArray = $koutsukikanText -split '`r`n'
                     
                     # 小口に記入する文字列を格納する変数を用意し、初期化する
@@ -406,7 +398,7 @@ for ($row = 14; $row -le 44; $row++) {
                     }
 
                     # 「金額」に記入
-                    $kingakuText = ([String]$workPlaceInfo[3]).Substring(4, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
+                    $kingakuText = ([String]$workPlaceInfo[3]).Substring($workPlaceLength, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,30) = $kingakuText
 
                 }
@@ -429,17 +421,17 @@ for ($row = 14; $row -le 44; $row++) {
 
 # ------------- 個人情報欄のコピー --------------
 # 1. 年月日のコピー
-$koguchiSheet.cells.item(78, 4) = $thisYear
-$koguchiSheet.cells.item(78, 8) = $month
+$koguchiSheet.cells.item(78, 4) = $targetYear
+$koguchiSheet.cells.item(78, 8) = $targetMonth
 
 # 月の最終日を日付欄に設定
-$koguchiSheet.cells.item(78, 11) = (Get-Date "$thisYear/$month/1").AddMonths(1).AddDays(-1).Day
+$koguchiSheet.cells.item(78, 11) = [DateTime]::DaysInMonth($targetYear,$targetMonth)
 
 # 2. 名前のコピー
 $koguchiSheet.cells.item(82, 21) = $kinmuhyouSheet.cells.range("W7").text
 # 勤務表の名前が空白だった場合処理を中断する
 if ($koguchiSheet.cells.item(82, 21).text -eq "") {
-    Write-Host ("`r`n" + $month + "月の勤務表に名前が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
+    Write-Host ("`r`n" + $targetMonth + "月の勤務表に名前が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
     endExcel
 }
 
@@ -450,7 +442,7 @@ $affiliation -match "(?<affliationName>.+?)部" | Out-Null
 $koguchiSheet.cells.item(80, 6) = $Matches.affliationName
 # 勤務表の所属が空白だった場合処理を中断する
 if ($koguchiSheet.cells.item(80, 6).text -eq "") {
-    Write-Host ("`r`n" + $month + "月の勤務表に所属が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
+    Write-Host ("`r`n" + $targetMonth + "月の勤務表に所属が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
     endExcel
 }
 # 4. 印鑑のコピー
