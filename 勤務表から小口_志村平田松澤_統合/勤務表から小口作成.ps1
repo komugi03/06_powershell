@@ -283,15 +283,12 @@ $kinmuhyouFullPath = $kinmuhyou.FullName
 
 # 勤務表ブックを開く
 $kinmuhyouBook = $excel.workbooks.open($kinmuhyouFullPath)
-write-host ([String]$targetMonth + '月')
 $kinmuhyouSheet = $kinmuhyouBook.worksheets.item([String]$targetMonth + '月')
-echo "($kinmuhyouSheet).name シート"
 
 # 小口ブックを開く
 $koguchiBook = $excel.workbooks.open($koguchi)
 $koguchiSheet = $koguchiBook.sheets(1)
 
-echo "book開けてるよ"
 
 
 # ------------- 勤務表の中身を小口にコピーする ----------------
@@ -305,7 +302,8 @@ for ($row = 14; $row -le 44; $row++) {
     # 勤務地判定のために「勤務内容」欄の文字列を取得
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
     Write-Host ("勤務地：" + $workPlace)
-    write-host ('$workPlaceの文字数：' + $workPlace.length)
+    $workPlaceLength = [int]$workPlace.length + 1
+    write-host ('$workPlaceの文字数：' + $workPlaceLength)
     
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
@@ -364,11 +362,11 @@ for ($row = 14; $row -le 44; $row++) {
                     $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
                     
                     # 「適用（行先、要件）」に記入
-                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring(4, ([String]$workPlaceInfo[0]).Length - 4)
+                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring(4, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,6) = $tekiyouText
 
                     # 「区間」に記入
-                    $kukanText = ([String]$workPlaceInfo[1]).Substring(4, ([String]$workPlaceInfo[1]).Length - 4)
+                    $kukanText = ([String]$workPlaceInfo[1]).Substring(4, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,18) = $kukanText
 
                     # 「交通機関」に記入
@@ -386,7 +384,7 @@ for ($row = 14; $row -le 44; $row++) {
                     
                     # 最初のお台場_を取り除いた文字列にする
                     # 小田急線`r`nJR山手線`r`nりんかい線　の状態
-                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - 4)
+                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
                     $koutsukikanArray = $koutsukikanText -split '`r`n'
                     
                     # 小口に記入する文字列を格納する変数を用意し、初期化する
@@ -408,7 +406,7 @@ for ($row = 14; $row -le 44; $row++) {
                     }
 
                     # 「金額」に記入
-                    $kingakuText = ([String]$workPlaceInfo[3]).Substring(4, ([String]$workPlaceInfo[3]).Length - 4)
+                    $kingakuText = ([String]$workPlaceInfo[3]).Substring(4, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,30) = $kingakuText
 
                 }
