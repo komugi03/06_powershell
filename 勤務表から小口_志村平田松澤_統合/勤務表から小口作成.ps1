@@ -198,6 +198,9 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 # ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
 
+
+
+
 echo "$targetYear 年の"
 echo "$targetMonth 月の小口を作成します"
 
@@ -302,6 +305,7 @@ for ($row = 14; $row -le 44; $row++) {
     # 勤務地判定のために「勤務内容」欄の文字列を取得
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
     Write-Host ("勤務地：" + $workPlace)
+    write-host ('$workPlaceの文字数：' + $workPlace.length)
     
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
@@ -369,8 +373,34 @@ for ($row = 14; $row -le 44; $row++) {
 
                     # 「交通機関」に記入
                     # ☆交通機関の改行がうまく入力されない！☆
-                    $koutsukikanText = "([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - 4)"
-                    $koguchiSheet.Cells.item($koguchiRowCounter,26) = $koutsukikanText
+                    # Stringにしてるからでは？？
+
+                    # テキストを直接とるのはやめる。改行コードを取り出して、再度埋め込む
+                    # replaceで `r`n を "`r`n" にする？だめ
+                    # splitで区切って、配列ごとに改行コードを足してあげる
+                    # お台場_小田急線`r`nJR山手線`r`nりんかい線
+                    # 小田急線`r`nJR山手線`r`nりんかい線
+                    # 小田急線JR山手線りんかい線
+                    # 配列の数繰り返して、配列の最後ならやらない
+                    # 小田急線`r`nJR山手線`r`nりんかい線`r`n
+                    
+                    # 最初のお台場_を取り除いた文字列にする
+                    # 小田急線`r`nJR山手線`r`nりんかい線　の状態
+                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring(4, ([String]$workPlaceInfo[2]).Length - 4)
+                    $koutsukikanArray = $koutsukikanText -split '`r`n'
+                    
+                    # 小口に記入する文字列を格納する変数を用意し、初期化する
+                    $koutsukikanKaigyou = $null
+
+                    # 配列が1以下じゃない間、繰り返す
+                    for ($i = 0; $i -lt $koutsukikanArray.Length; $i++) {
+                        # 改行コードを足す
+                        $koutsukikanKaigyou += $koutsukikanArray[$i] + "`r`n"
+                    }
+                    
+                    # 最後の改行を削除する
+                    $koutsukikanKaigyou = $koutsukikanKaigyou.Substring(0, $koutsukikanKaigyou.Length - 1)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,26) = $koutsukikanKaigyou
                     
                     # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
                     if($koguchiSheet.Cells.item($koguchiRowCounter,26).text -match "^.+\n.+\n.+\n.+"){
@@ -463,10 +493,10 @@ $koguchiSheet.range("A1:BN90").font.colorindex = 1
 
 
 # $kinmuhyouBook.save()
-$koguchiBook.save()
+# $koguchiBook.save()
 
 $kinmuhyouBook.close()
-$koguchiBook.close()
+# $koguchiBook.close()
 
 # Rename-Item -path $koguchi -NewName $newKoguchiPath -ErrorAction:Stop
 
