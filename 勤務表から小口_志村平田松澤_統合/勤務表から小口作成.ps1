@@ -18,9 +18,8 @@ function breakExcel {
     # Bookを閉じる
     $kinmuhyouBook.close()
     $koguchiBook.close()
+    Remove-Item -Path $koguchi
     # 使用していたプロセスの解放
-    # ↓ もし他の用事でExcelを開いていたら、$nullにするとそれまで閉じてしまうためコメントアウト
-    # $excel = $null
     $kinmuhyouBook = $null
     $kinmuhyouSheet = $null
     $koguchiBook = $null
@@ -53,14 +52,14 @@ function breakExcel {
 #     Write-Host ('#' * ($maxLengths * 2 + 6) + "`r`n") -ForegroundColor $Args[0]
 # }
 
-# # 引数の空白を除きファイル名として使えない文字を消す関数
-# # fileName : ファイル名
-# function removeInvalidFileNameChars ($fileName) {
-#     $fileNameRemovedSpace = $fileName -replace "　", ""　-replace " ", ""
-#     $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
-#     $regex = "[{0}]" -f [RegEx]::Escape($invalidChars)
-#     return $fileNameRemovedSpace -replace $regex
-# }
+# 引数の空白を除きファイル名として使えない文字を消す関数
+# fileName : ファイル名
+function remove-invalidFileNameChars ($fileName) {
+    $fileNameRemovedSpace = $fileName -replace "　", ""　-replace " ", ""
+    $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
+    $regex = "[{0}]" -f [RegEx]::Escape($invalidChars)
+    return $fileNameRemovedSpace -replace $regex
+}
 
 # フォーム全体の設定をする関数
 # formText : フォームの本文（文字列）
@@ -88,8 +87,6 @@ function makeLabel ($labelText, $form) {
 
 # -------------------- 主処理の準備 --------------------------
 
-##### 注意書きを表示。問題ない場合にはEnterを押させる。#####
-
 # 現在の年月日を取得する
 $thisYear = (Get-Date).Year
 $thisMonth = (Get-Date).Month
@@ -106,7 +103,7 @@ else {
     $targetMonth = $thisMonth
 }
 
-
+# 作成する小口の年月が合っているか確認するダイアログを表示
 # (現在日によって変わるので、get-date -Format Y にはしていない)
 $yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？`r`n`r`n「いいえ」で他の月を選択できます",'作成する小口の対象年月','YesNo','Question')
 
@@ -198,11 +195,8 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 # ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
 
-
-
-
-echo "$targetYear 年の"
-echo "$targetMonth 月の小口を作成します"
+Write-Host "$targetYear 年の"
+Write-Host "$targetMonth 月の小口を作成します"
 
 # ポップアップを作成
 $popup = new-object -comobject wscript.shell
@@ -221,7 +215,7 @@ elseif ($koguchiTemplate.Count -gt 1) {
     exit
 }
 
-# 作成した小口を格納するフォルダに、テンプレートをコピーする
+# -----------作成した小口を格納するフォルダに、テンプレートをコピーする------------------
 
 # 小口格納フォルダが存在していない場合は作成する
 if(!(Test-Path $PWD"\作成した小口交通費請求書")){
@@ -292,7 +286,7 @@ $koguchiSheet = $koguchiBook.sheets(1)
 
 
 # ------------- 勤務表の中身を小口にコピーする ----------------
-# 「勤務内容」欄に書かれている勤務地を参考にして、勤務地情報リストファイルから該当情報を小口に記入する
+# 「勤務内容」欄に書かれている勤務地を参考にして、勤務地情報リストテキストから該当情報を小口に記入する
 
 # 小口の行カウンター
 $koguchiRowCounter = 11
@@ -339,7 +333,6 @@ for ($row = 14; $row -le 44; $row++) {
                 
                 # 処理を中断し、終了
                 breakExcel
-                Remove-Item -Path $koguchi
                 exit
                 
             }
@@ -428,11 +421,13 @@ $koguchiSheet.cells.item(78, 8) = $targetMonth
 $koguchiSheet.cells.item(78, 11) = [DateTime]::DaysInMonth($targetYear,$targetMonth)
 
 # 2. 名前のコピー
-$koguchiSheet.cells.item(82, 21) = $kinmuhyouSheet.cells.range("W7").text
+$targetPersonName = $kinmuhyouSheet.cells.range("W7").text
+$koguchiSheet.cells.item(82, 21) = $targetPersonName
 # 勤務表の名前が空白だった場合処理を中断する
 if ($koguchiSheet.cells.item(82, 21).text -eq "") {
-    Write-Host ("`r`n" + $targetMonth + "月の勤務表に名前が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
-    endExcel
+    $popup.popup($targetMonth + "月の勤務表に【名前】が記載されていません`r`n処理を中断します",0,"やり直してください",48) | Out-Null
+    breakExcel
+    exit
 }
 
 # 3. 所属のコピー
@@ -442,12 +437,13 @@ $affiliation -match "(?<affliationName>.+?)部" | Out-Null
 $koguchiSheet.cells.item(80, 6) = $Matches.affliationName
 # 勤務表の所属が空白だった場合処理を中断する
 if ($koguchiSheet.cells.item(80, 6).text -eq "") {
-    Write-Host ("`r`n" + $targetMonth + "月の勤務表に所属が記載されていません`r`n処理を中断します`r`n") -ForegroundColor Red
-    endExcel
+    $popup.popup($targetMonth + "月の勤務表に【所属】が記載されていません`r`n処理を中断します",0,"やり直してください",48) | Out-Null
+    breakExcel
+    exit
 }
 # 4. 印鑑のコピー
 # 印鑑がないかもしれないフラグ
-$haveNotStamp = $false
+$haveStamp = $true
 # 勤務表の印鑑のあるセルをクリップボードにコピー
 $kinmuhyouSheet.range("AA7").copy() | Out-Null
 # 小口シートに印鑑をペースト
@@ -463,13 +459,16 @@ $koguchiSheet.range("AD82").borders.linestyle = $linestyle::xllinestylenone
 # 印鑑（オブジェクト）が増えてなさそうなら、メッセージを表示する
 $numberOfObject = 79
 if ($koguchiSheet.shapes.count -eq $numberOfObject) {
-    $haveNotStamp = $true
+    $haveStamp = $false
 }
 
 # 印鑑がないかもしれない場合注意喚起
-if ($haveNotStamp) {
+if (!($haveStamp)) {
 
-    displaySharpMessage "Blue" "印鑑が勤務表に入っていない、または既定のセルからずれている可能性があります" "確認してください"
+    $popup.popup("印鑑が勤務表に入っていない`r`nまたは印から大幅にずれている可能性があります`r`nやり直してください",0,"やり直してください",48) | Out-Null
+    breakExcel
+    exit
+
 }
 
 # 文字色の変更（全部黒に）
@@ -478,21 +477,127 @@ $koguchiSheet.range("A1:BN90").font.colorindex = 1
 # ×ボタンを押したとき、処理途中のものを削除しよう
 
 
+# ---------------- 終了処理 ------------------
+
+# 月が1桁 (ex 1月) の場合2桁 (ex 01) を用意する
+$fileNameMonth = "{0:D2}" -f $targetMonth
+
+# 小口ブックの保存
+$koguchiBook.save()
+
+# 勤務表ブックと小口ブックを閉じる
+$kinmuhyouBook.close()
+$koguchiBook.close()
+
+# --------新しい小口ファイル名を用意---------
+# <社員番号>_小口交通費・出張旅費精算明細書_YYYYMM_<氏名>
+$koguchiNewFileName = $kinmuhyou.name.Substring(0, 3) + "_小口交通費・出張旅費精算明細書_" + $targetYear + $fileNameMonth + "_" + $targetPersonName
+# ファイル名に使えない文字が入っていたら削除する(氏名の間の空白など)
+$koguchiNewFileName = remove-invalidFileNameChars $koguchiNewFileName
+# 新しい小口ファイルのフルパス
+$koguchiNewfullPath = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath $koguchiNewFileName
+
+# ------------ファイル名を変更----------------
+
+# ファイル名被ったとき用カウンター(covering)
+# $numberOfFiles = 1
+
+# 名前変更前のファイル名を退避？
+# $koguchiBeforeChangePath = $koguchiNewFileName
+
+# 名前変更前のファイルパスを退避
+# $koguchiBeforeChangePath = $koguchiNewfullPath
+
+# すでに対象月の小口が作られているときの処理
+# ※1桁まで対応
+# if (Test-Path ($koguchiNewfullPath + "_$numberOfFiles.xlsx")) {
+if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
+
+    
+    # ------対象年月の小口が2つ以上存在してる場合--------
+    # <社員番号>_小口交通費・出張旅費精算明細書_YYYYMM_<氏名>_<numberOfFiles>.xlsxが存在する
+
+    # 同じ月の小口のファイル名を取得(_1など数字がついている)
+    $onajiFileName = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_小口交通費・出張旅費精算明細書_.+_.+_"
+
+    # 同じ月の小口のファイル名を_で分ける
+    # [0]: <社員番号>
+    # [1]: 小口交通費・出張旅費精算明細書
+    # [2]: <日付>
+    # [3]: <氏名>
+    # [4]:「1.xlsx」の数字部分 
+    $splitBy_FileName = $onajiFileName -split "_"
+    
+    # -----------最大の数字を探す--------------
+    for($i = 4; $i -lt (($onajiFileName.count)*5); $i = $i + 5){
+
+        # 「1.xlsx」の数字部分を抜き出してインクリメントできるように数字にする
+        $fileNameCountNumber = [int]($splitBy_FileName[$i].Substring(0,1))
+        $fileNameCountNumber
+        
+        # もし今より大きかったら入れる
+        if($fileNameCount -lt $fileNameCountNumber){
+            write-host "$fileNameCount を"
+            $fileNameCount = $fileNameCountNumber
+            write-host "$fileNameCount にしたよ"
+
+        }
+        
+    }
+
+    # ファイル名の末尾の数字部分をインクリメント
+    $fileNameCount = $fileNameCount + 1
+
+    # ファイル名の変更に使用する文字列を用意
+    $koguchiNewFileName = ($koguchiNewFileName + '_' + $fileNameCount + '.xlsx')
+
+
+    # # 何回作ってもファイル名が被らないように通番を振る
+    # $koguchiNewFileName = $koguchiNewFileName + "_$numberOfFiles.xlsx"
+    # # $koguchiNewfullPath = $koguchiNewfullPath -replace ".xlsx", "_$numberOfFiles.xlsx"
+    # # 「・・・_1.xlsx」を作っておく
+
+    # $koguchiAfterChangePath = $koguchiBeforeChangePath -replace ".xlsx", "_$numberOfFiles.xlsx"
+    # for (;;) {
+    #     if (Test-Path $koguchiAfterChangePath) {
+    #         $currentNumber = [int]($koguchiAfterChangePath.Substring($koguchiAfterChangePath.Length - 6, 1))
+    #         $numberOfFiles = $currentNumber + 1
+    #         $koguchiAfterChangePath = $koguchiAfterChangePath -replace "_$currentNumber.xlsx", "_$numberOfFiles.xlsx"
+    #     }
+    #     else {
+    #         $koguchiNewfullPath = $koguchiAfterChangePath
+    #         break
+    #     }
+    # } 
+} elseif (Test-Path ($koguchiNewfullPath + '.xlsx')) {
+    
+    # ------対象年月の小口が1つ存在してる場合--------
+    # <社員番号>_小口交通費・出張旅費精算明細書_YYYYMM_<氏名>_<numberOfFiles>.xlsxが存在しない
+
+    # 「_1.xlsx」をファイル名に追加する
+    $koguchiNewFileName = $koguchiNewFileName + '_1.xlsx'
+
+}else{
+    # 拡張子を追加
+    $koguchiNewFileName = $koguchiNewFileName + '.xlsx'
+}
+
+
+# 小口ファイル名を変更
+Rename-Item -path $koguchi -NewName $koguchiNewFileName -ErrorAction:Stop
+# Rename-Item -path $koguchi -NewName $koguchiNewfullPath -ErrorAction:Stop
+
+# 使用したプロセスの解放
+$kinmuhyouBook = $null
+$kinmuhyouSheet = $null
+$koguchiBook = $null
+$koguchiSheet = $null
+$koguchiCell = $null
+[GC]::Collect()
+
+
 # 最後は「開く」「終了」の2択
 # 開く→できあがったところのエクスプローラーを表示する
-
-
-# $kinmuhyouBook.save()
-# $koguchiBook.save()
-
-$kinmuhyouBook.close()
-# $koguchiBook.close()
-
-# Rename-Item -path $koguchi -NewName $newKoguchiPath -ErrorAction:Stop
-
-# 勤務表からとってくる勤務地の情報は「勤務内容」の列からだけでOK
-
-
 
 # 最終的に、バッチファイルの形にする（.batにする）
 # バッチファイルをたたいてもpowershellぽい画面が出ないようにする。
