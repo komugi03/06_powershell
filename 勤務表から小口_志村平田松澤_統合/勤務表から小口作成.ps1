@@ -207,11 +207,11 @@ Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 # ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
 
 # ファイル名の勤務表_のあとの表記が「M月」表記の場合
-# $fileNameMonth = [string]("$targetMonth" + "月")
+$fileNameMonth = [string]("$targetMonth" + "月")
 
 # もし「勤務表_YYYYMM」のような表記にするなら ↑ をコメントアウトして ↓ のコメントアウトをぬく
-$targetMonth00 = "{0:00}" -f [int]$targetMonth
-$fileNameMonth = ("$targetYear" + "$targetMonth00")
+# $targetMonth00 = "{0:00}" -f [int]$targetMonth
+# $fileNameMonth = ("$targetYear" + "$targetMonth00")
 
 # 勤務表ファイルを取得
 $kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match ("[0-9]{3}_勤務表_" + "$fileNameMonth" + "_.+")
@@ -459,7 +459,7 @@ $koguchiSheet.range("A1:BN90").font.colorindex = 1
 # ---------------- 終了処理 ------------------
 
 # 月が1桁 (ex 1月) の場合2桁 (ex 01) を用意する
-$fileNameMonth = "{0:D2}" -f $targetMonth
+$fileNameMonth = "{0:D2}" -f [int]$targetMonth
 
 # 小口ブックの保存
 $koguchiBook.save()
