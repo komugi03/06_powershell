@@ -315,7 +315,7 @@ for ($row = 14; $row -le 44; $row++) {
         # ---------------勤務地情報リストを読み込む---------------------
         # 勤務地情報リストが書いてあるテキスト
         $infoTextFileName = "ツール用引数.txt"
-        $infoTextFileFullpath = "$PWD\$infoTextFileName"
+        $infoTextFileFullpath = "$PWD\resources\$infoTextFileName"
         
         # 勤務地情報リストテキストが存在したときの処理
         if(Test-Path $infoTextFileFullpath){
@@ -405,7 +405,12 @@ for ($row = 14; $row -le 44; $row++) {
         }else{
             # ポップアップを表示
             $popup.popup("勤務地の情報リストが見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
+        
+            # 処理を中断し、終了
+            breakExcel
+            exit
         }
+        
         
         # 「勤務内容」欄が空欄or在宅の処理終了
     }
