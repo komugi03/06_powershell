@@ -31,27 +31,6 @@ function breakExcel {
     # exit
 }
 
-# # シャープを使ったメッセージの表示をする関数
-# # 最大文字数を基準にシャープの長さを決定する
-# # 引数1 : 文字色
-# # 引数2以降 : メッセージ
-# function displayMessagesSurroundedBySharp {
-#     # 変数の初期化
-#     $maxLengths = 0
-#     for ($i = 1; $i -lt $Args.length; $i++) {
-#         # メッセージの中で一番長い文字数を取得する
-#         if ( $maxLengths -lt $Args[$i].length) {
-#             $maxLengths = $Args[$i].length
-#         }
-#     }
-#     # メッセージの表示
-#     Write-Host ("`r`n" + '#' * ($maxLengths * 2 + 6) + "`r`n") -ForegroundColor $Args[0]
-#     for ($i = 1; $i -lt $Args.length; $i++) {
-#         Write-Host ('　　' + $Args[$i] + "　　`r`n") -ForegroundColor $Args[0]
-#     }
-#     Write-Host ('#' * ($maxLengths * 2 + 6) + "`r`n") -ForegroundColor $Args[0]
-# }
-
 # 引数の空白を除きファイル名として使えない文字を消す関数
 # fileName : ファイル名
 function remove-invalidFileNameChars ($fileName) {
@@ -227,12 +206,12 @@ Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 
 # ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
 
-# ファイル名の勤務表_のあとの表記
-$fileNameMonth = [string]("$targetMonth" + "月")
+# ファイル名の勤務表_のあとの表記が「M月」表記の場合
+# $fileNameMonth = [string]("$targetMonth" + "月")
 
-# もし「勤務表_202104」のような表記にするなら ↑ をコメントアウトして ↓ のコメントアウトをぬく
-# $targetMonth00 = "{0:00}" -f [int]$targetMonth
-# $fileNameMonth = ($targetYear + $targetMonth00)
+# もし「勤務表_YYYYMM」のような表記にするなら ↑ をコメントアウトして ↓ のコメントアウトをぬく
+$targetMonth00 = "{0:00}" -f [int]$targetMonth
+$fileNameMonth = ("$targetYear" + "$targetMonth00")
 
 # 勤務表ファイルを取得
 $kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match ("[0-9]{3}_勤務表_" + "$fileNameMonth" + "_.+")
@@ -359,11 +338,11 @@ for ($row = 14; $row -le 44; $row++) {
                     
                     # 「適用（行先、要件）」に記入
                     $tekiyouText = ([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
-                    $koguchiSheet.Cells.item($koguchiRowCounter,6) = $tekiyouText
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$tekiyou) = $tekiyouText
 
                     # 「区間」に記入
                     $kukanText = ([String]$workPlaceInfo[1]).Substring($workPlaceLength, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
-                    $koguchiSheet.Cells.item($koguchiRowCounter,18) = $kukanText
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$kukan) = $kukanText
 
                     # 「交通機関」に記入
 
@@ -383,16 +362,16 @@ for ($row = 14; $row -le 44; $row++) {
                     
                     # 最後の改行を削除する
                     $koutsukikanKaigyou = $koutsukikanKaigyou.Substring(0, $koutsukikanKaigyou.Length - 1)
-                    $koguchiSheet.Cells.item($koguchiRowCounter,26) = $koutsukikanKaigyou
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan) = $koutsukikanKaigyou
                     
                     # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
-                    if($koguchiSheet.Cells.item($koguchiRowCounter,26).text -match "^.+\n.+\n.+\n.+"){
+                    if($koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan).text -match "^.+\n.+\n.+\n.+"){
                         $koguchiSheet.Range("Z$koguchiRowCounter").RowHeight = 40
                     }
 
                     # 「金額」に記入
                     $kingakuText = ([String]$workPlaceInfo[3]).Substring($workPlaceLength, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
-                    $koguchiSheet.Cells.item($koguchiRowCounter,30) = $kingakuText
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$kingaku) = $kingakuText
 
                 }
 
@@ -499,15 +478,6 @@ $koguchiNewfullPath = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -Chi
 
 # ------------ファイル名を変更----------------
 
-# ファイル名被ったとき用カウンター(covering)
-# $numberOfFiles = 1
-
-# 名前変更前のファイル名を退避？
-# $koguchiBeforeChangePath = $koguchiNewFileName
-
-# 名前変更前のファイルパスを退避
-# $koguchiBeforeChangePath = $koguchiNewfullPath
-
 # すでに対象月の小口が作られているときの処理
 # ※1桁まで対応
 # if (Test-Path ($koguchiNewfullPath + "_$numberOfFiles.xlsx")) {
@@ -551,24 +521,6 @@ if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
     # ファイル名の変更に使用する文字列を用意
     $koguchiNewFileName = ($koguchiNewFileName + '_' + $fileNameCount + '.xlsx')
 
-
-    # # 何回作ってもファイル名が被らないように通番を振る
-    # $koguchiNewFileName = $koguchiNewFileName + "_$numberOfFiles.xlsx"
-    # # $koguchiNewfullPath = $koguchiNewfullPath -replace ".xlsx", "_$numberOfFiles.xlsx"
-    # # 「・・・_1.xlsx」を作っておく
-
-    # $koguchiAfterChangePath = $koguchiBeforeChangePath -replace ".xlsx", "_$numberOfFiles.xlsx"
-    # for (;;) {
-    #     if (Test-Path $koguchiAfterChangePath) {
-    #         $currentNumber = [int]($koguchiAfterChangePath.Substring($koguchiAfterChangePath.Length - 6, 1))
-    #         $numberOfFiles = $currentNumber + 1
-    #         $koguchiAfterChangePath = $koguchiAfterChangePath -replace "_$currentNumber.xlsx", "_$numberOfFiles.xlsx"
-    #     }
-    #     else {
-    #         $koguchiNewfullPath = $koguchiAfterChangePath
-    #         break
-    #     }
-    # } 
 } elseif (Test-Path ($koguchiNewfullPath + '.xlsx')) {
     
     # ------対象年月の小口が1つ存在してる場合--------
