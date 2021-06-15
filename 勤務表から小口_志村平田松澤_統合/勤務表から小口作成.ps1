@@ -421,20 +421,23 @@ if ($koguchiSheet.cells.item(80, 6).text -eq "") {
     exit
 }
 # 4. 印鑑のコピー
+# 印鑑をコピペしたいセルの位置
+$targetStampCell = "AD82"
+
 # 印鑑がないかもしれないフラグ
 $haveStamp = $true
 # 勤務表の印鑑のあるセルをクリップボードにコピー
 $kinmuhyouSheet.range("AA7").copy() | Out-Null
 # 小口シートに印鑑をペースト
-$koguchiCell = $koguchiSheet.range("AD82")
+$koguchiCell = $koguchiSheet.range($targetStampCell)
 $koguchiSheet.paste($koguchiCell)
 # ペースト先を編集
-$koguchiSheet.range("AD82").formula = ""
-$koguchiSheet.range("AD82").interior.colorindex = 0
+$koguchiSheet.range($targetStampCell).formula = ""
+$koguchiSheet.range($targetStampCell).interior.colorindex = 0
 # 罫線を編集するための宣言
 $LineStyle = "microsoft.office.interop.excel.xlLineStyle" -as [type]
 # 罫線をなしにする
-$koguchiSheet.range("AD82").borders.linestyle = $linestyle::xllinestylenone
+$koguchiSheet.range($targetStampCell).borders.linestyle = $linestyle::xllinestylenone
 # 印鑑（オブジェクト）が増えてなさそうなら、メッセージを表示する
 $numberOfObject = 79
 if ($koguchiSheet.shapes.count -eq $numberOfObject) {
