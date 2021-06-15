@@ -5,7 +5,7 @@
 # 
 
 # ---------------アセンブリの読み込み---------------
-Add-Type -Assembly System.Windows.Forms
+Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
 # ----------------- 関数定義 ---------------------
@@ -231,7 +231,28 @@ elseif ($kinmuhyou.Count -gt 1) {
 }
 
 
-# 処理中のダイアログを表示させる（バーとかでるといいね）
+# --------------- 処理中のプログレスバーを表示 -------------
+
+# プログレスバー用のフォームを用意
+$formProgressBar = New-Object System.Windows.Forms.Form
+$formProgressBar.Size = "300,200"
+$formProgressBar.Startposition = "CenterScreen"
+$formProgressBar.Text = "作成中…"
+
+# プログレスバーを用意
+$progressBar = New-Object System.Windows.Forms.ProgressBar
+$progressBar.Location = "10,100"
+$progressBar.Size = "260,30"
+$progressBar.Maximum = "10"
+$progressBar.Minimum = "0"
+$progressBar.Style = "Continuous"
+
+# =========プログレスバーを進める2/10 =======
+$progressBar.Value = 2
+$formProgressBar.Controls.AddRange($progressBar)
+$formProgressBar.Topmost = $True
+$formProgressBar.Show()
+
 
 # displaySharpMessage "White" ([string]$targetMonth + " 月の小口交通費請求書を作成します") "しばらくお待ちください。"
 
@@ -260,6 +281,9 @@ $koguchiBook = $excel.workbooks.open($koguchi)
 $koguchiSheet = $koguchiBook.sheets(1)
 
 
+# =========プログレスバーを進める4/10 =======
+$progressBar.Value += 2
+$formProgressBar.Show()
 
 # ------------- 勤務表の中身を小口にコピーする ----------------
 # 「勤務内容」欄に書かれている勤務地を参考にして、勤務地情報リストテキストから該当情報を小口に記入する
@@ -388,6 +412,10 @@ for ($row = 14; $row -le 44; $row++) {
 
 }
 
+# =========プログレスバーを進める6/10 =======
+$progressBar.Value += 2
+$formProgressBar.Show()
+
 # ------------- 個人情報欄のコピー --------------
 # --- 年月日のコピー ---
 $koguchiSheet.cells.item(78, 4) = $targetYear
@@ -455,6 +483,10 @@ $koguchiSheet.range("A1:BN90").font.colorindex = 1
 
 # ×ボタンを押したとき、処理途中のものを削除しよう
 
+
+# =========プログレスバーを進める8/10 =======
+$progressBar.Value += 2
+$formProgressBar.Show()
 
 # ---------------- 終了処理 ------------------
 
@@ -537,6 +569,12 @@ if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
 
 # 小口ファイル名を変更
 Rename-Item -path $koguchi -NewName $koguchiNewFileName -ErrorAction:Stop
+
+
+# =======プログレスバーの終了8/10========
+$progressBar.Value += 2
+$finish = $formProgressBar.Show()
+$formProgressBar.Close()
 
 # 正常に終了したときポップアップを表示
 $popup.popup("お待たせしました！正常に終了しました`r`n仕上がりを確認してください",0,"正常終了",64) | Out-Null    
