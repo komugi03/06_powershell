@@ -1,15 +1,12 @@
 # 
 # 勤務表をもとに小口交通費請求書を作成するPowershell
 # 
-# 勤務表のファイル名：<3桁の社員番号>_勤務表_m月_<氏名>.xlsx
+# 勤務表のファイル名：<3桁の社員番号>_勤務表_M月_<氏名>.xlsx
 # 
 
 # ---------------アセンブリの読み込み---------------
 Add-Type -Assembly System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
-# # INPUTのために必要?
-# [void][System.Reflection.Assembly]::Load("Microsoft.VisualBasic, Version=8.0.0.0, Culture=Neutral, PublicKeyToken=b03f5f7f11d50a3a")
-
 
 # ----------------- 関数定義 ---------------------
 
@@ -180,7 +177,7 @@ Write-Host "$targetMonth 月の小口を作成します"
 # ポップアップを作成
 $popup = new-object -comobject wscript.shell
 
-# -------（場所迷い中）---------------小口テンプレを取得------------------------
+# ----------------------小口テンプレを取得------------------------
 $koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "小口交通費・出張旅費精算明細書_テンプレ.xlsx"
 # 小口テンプレの個数確認
 if ($koguchiTemplate.Count -lt 1) {
@@ -204,7 +201,7 @@ if(!(Test-Path $PWD"\作成した小口交通費請求書")){
 $koguchi = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath "小口交通費・出張旅費精算明細書_コピー.xlsx"
 Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 
-# ------（ユーザー指定の月が必要だから、コンボボックスより後）----------テンプレートから小口交通費請求書を作成する---------------------
+# ----------------テンプレートから小口交通費請求書を作成する---------------------
 
 # ファイル名の勤務表_のあとの表記が「M月」表記の場合
 $fileNameMonth = [string]("$targetMonth" + "月")
@@ -392,14 +389,14 @@ for ($row = 14; $row -le 44; $row++) {
 }
 
 # ------------- 個人情報欄のコピー --------------
-# 1. 年月日のコピー
+# --- 年月日のコピー ---
 $koguchiSheet.cells.item(78, 4) = $targetYear
 $koguchiSheet.cells.item(78, 8) = $targetMonth
 
 # 月の最終日を日付欄に設定
 $koguchiSheet.cells.item(78, 11) = [DateTime]::DaysInMonth($targetYear,$targetMonth)
 
-# 2. 名前のコピー
+# --- 名前のコピー ---
 $targetPersonName = $kinmuhyouSheet.cells.range("W7").text
 $koguchiSheet.cells.item(82, 21) = $targetPersonName
 # 勤務表の名前が空白だった場合処理を中断する
@@ -409,7 +406,7 @@ if ($koguchiSheet.cells.item(82, 21).text -eq "") {
     exit
 }
 
-# 3. 所属のコピー
+# --- 所属のコピー ---
 $affiliation = $kinmuhyouSheet.cells.range("W6").text
 # "部" を削除する
 $affiliation -match "(?<affliationName>.+?)部" | Out-Null
@@ -420,7 +417,7 @@ if ($koguchiSheet.cells.item(80, 6).text -eq "") {
     breakExcel
     exit
 }
-# 4. 印鑑のコピー
+# --- 印鑑のコピー ---
 # 印鑑をコピペしたいセルの位置
 $targetStampCell = "AD82"
 
@@ -540,7 +537,9 @@ if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
 
 # 小口ファイル名を変更
 Rename-Item -path $koguchi -NewName $koguchiNewFileName -ErrorAction:Stop
-# Rename-Item -path $koguchi -NewName $koguchiNewfullPath -ErrorAction:Stop
+
+# 正常に終了したときポップアップを表示
+$popup.popup("お待たせしました！正常に終了しました`r`n仕上がりを確認してください",0,"正常終了",64) | Out-Null    
 
 # 使用したプロセスの解放
 $kinmuhyouBook = $null
@@ -553,10 +552,3 @@ $koguchiCell = $null
 
 # 最後は「開く」「終了」の2択
 # 開く→できあがったところのエクスプローラーを表示する
-
-# 最終的に、バッチファイルの形にする（.batにする）
-# バッチファイルをたたいてもpowershellぽい画面が出ないようにする。
-
-# 志村のテキスト作成バッチで各作業場所の詳細設定 → 松澤のバッチ　→　
-# ★READMEをつくる      どういう形式にするかは迷い中。
-# ★ショートカットを作る    バッチファイルのショートカットを作成。簡単に作れるのであれば作らない。
