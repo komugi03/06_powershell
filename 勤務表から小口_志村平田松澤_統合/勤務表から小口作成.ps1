@@ -171,9 +171,6 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 # ☆$yesNo_yearMonthAreCorrect -eq 'No'ループ終了☆
 }
 
-Write-Host "$targetYear 年の"
-Write-Host "$targetMonth 月の小口を作成します"
-
 # ポップアップを作成
 $popup = new-object -comobject wscript.shell
 
@@ -295,9 +292,7 @@ $koguchiRowCounter = 11
 for ($row = 14; $row -le 44; $row++) {
     # 勤務地判定のために「勤務内容」欄の文字列を取得
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
-    Write-Host ("勤務地：" + $workPlace)
     $workPlaceLength = [int]$workPlace.length + 1
-    write-host ('$workPlaceと＿の文字数：' + $workPlaceLength)
     
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
@@ -324,7 +319,6 @@ for ($row = 14; $row -le 44; $row++) {
             
             # 「勤務内容」欄の文字列にマッチした勤務地の情報を、リストから取得 ( 配列の中身　[0]:適用　[1]:区間　[2]:交通機関　[3]:金額 )
             $workPlaceInfo = $argumentText | Select-String -Pattern ($workPlace + '_')
-            Write-Host ("勤務地list：" + $workPlaceInfo)
             
             # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
             if($workPlaceInfo -eq $null){
@@ -340,8 +334,6 @@ for ($row = 14; $row -le 44; $row++) {
             # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
             elseif(([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength) -eq '1'){
                 # 小口に記入しない
-
-                write-host "!!!!!!zaitaku!!!!!!"
             }
             
             # 上記以外の場合、小口に書き込む
@@ -544,10 +536,7 @@ if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
         
         # もし今より大きかったら入れる
         if($fileNameCount -lt $fileNameCountNumber){
-            write-host "$fileNameCount を"
             $fileNameCount = $fileNameCountNumber
-            write-host "$fileNameCount にしたよ"
-
         }
         
     }
