@@ -539,7 +539,6 @@ if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
 
         # 「1.xlsx」の数字部分を抜き出してインクリメントできるように数字にする
         $fileNameCountNumber = [int]($splitBy_FileName[$i].Substring(0,1))
-        $fileNameCountNumber
         
         # もし今より大きかったら入れる
         if($fileNameCount -lt $fileNameCountNumber){
@@ -578,10 +577,12 @@ $formProgressBar.Show()
 $formProgressBar.Close()
 
 # 正常に終了したときポップアップを表示
-$popup.popup("お待たせしました！正常に終了しました`r`n仕上がりを確認してください",0,"正常終了",64) | Out-Null    
+$successEnd = $popup.popup("お待たせしました！正常に終了しました`r`nOKを押して仕上がりを確認してください",0,"正常終了",64)    
 
-# 最後は「開く」「終了」の2択
-# 開く→できあがったところのエクスプローラーを表示する
+# ポップアップのOKが押されたら作成した小口が格納されているフォルダを開く
+if($successEnd -eq '1'){
+    Start-Process $PWD"\作成した小口交通費請求書"
+}
 
 # 使用したプロセスの解放
 $kinmuhyouBook = $null
