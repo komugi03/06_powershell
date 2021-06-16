@@ -90,20 +90,23 @@ $targetYear = $thisYear
 if($yesNo_yearMonthAreCorrect -eq 'No'){
     
     # フォントの指定
-    $Font = New-Object System.Drawing.Font("メイリオ",8)
+    $Font = New-Object System.Drawing.Font("MS UI Gothic",9)
 
     # フォーム全体の設定
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "作成する小口の対象年月"
     $form.Size = New-Object System.Drawing.Size(265,200)
     $form.StartPosition = "CenterScreen"
+    write-host ("form.font" + $form.font)
     $form.font = $Font
+    $form.font
 
     # ラベルを表示
     $label = New-Object System.Windows.Forms.Label
     $label.Location = New-Object System.Drawing.Point(10,10)
     $label.Size = New-Object System.Drawing.Size(270,30)
     $label.Text = "作成したい小口の年月を選択してください"
+    $label.Font = $Font
     $form.Controls.Add($label)
 
     # OKボタンの設定
@@ -235,6 +238,15 @@ $formProgressBar = New-Object System.Windows.Forms.Form
 $formProgressBar.Size = "300,200"
 $formProgressBar.Startposition = "CenterScreen"
 $formProgressBar.Text = "作成中…"
+$formProgressBar.font
+$formProgressBar.font = $Font
+$formProgressBar.font
+
+# プログレスバー用のラベルを用意
+$progressLabel = New-Object System.Windows.Forms.Label
+$progressLabel.Location = New-Object System.Drawing.Point(10,40)
+$progressLabel.Size = New-Object System.Drawing.Size(270,30)
+$progressLabel.Text = "作成しています`r`nしばらくお待ちください"
 
 # プログレスバーを用意
 $progressBar = New-Object System.Windows.Forms.ProgressBar
@@ -246,12 +258,10 @@ $progressBar.Style = "Continuous"
 
 # =========プログレスバーを進める2/10 =======
 $progressBar.Value = 2
-$formProgressBar.Controls.AddRange($progressBar)
+$formProgressBar.Controls.AddRange(@($progressBar,$progressLabel))
 $formProgressBar.Topmost = $True
 $formProgressBar.Show()
 
-
-# displaySharpMessage "White" ([string]$targetMonth + " 月の小口交通費請求書を作成します") "しばらくお待ちください。"
 
 # ----------------------Excelを起動する--------------------------------
 try {
@@ -406,7 +416,7 @@ for ($row = 14; $row -le 44; $row++) {
         }
         
         
-        # 「勤務内容」欄が空欄or在宅の処理終了
+        # 「勤務内容」欄が空欄or在宅以外の処理終了
     }
 
 }
@@ -577,7 +587,7 @@ $formProgressBar.Show()
 $formProgressBar.Close()
 
 # 正常に終了したときポップアップを表示
-$successEnd = $popup.popup("お待たせしました！正常に終了しました`r`nOKを押して仕上がりを確認してください",0,"正常終了",64)    
+$successEnd = $popup.popup($targetPersonName + "さんの`r`n" + $targetYear + "年" + $targetMonth + "月の小口が完成しました : )`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
 
 # ポップアップのOKが押されたら作成した小口が格納されているフォルダを開く
 if($successEnd -eq '1'){
