@@ -322,9 +322,10 @@ for ($row = 14; $row -le 44; $row++) {
             
             # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
             if($workPlaceInfo -eq $null){
+                # ======= プログレスバーを閉じる =======
+                $formProgressBar.Close()
                 # ポップアップを表示
                 $popup.popup("勤務地の情報が登録されていません`r`n初期設定もしくは上書きし、やり直してください",0,"やり直してください",48) | Out-Null
-                
                 # 処理を中断し、終了
                 breakExcel
                 exit
@@ -395,9 +396,10 @@ for ($row = 14; $row -le 44; $row++) {
             
         # 勤務地情報リストテキストが存在したときの処理終了
         }else{
+            # ======= プログレスバーを閉じる =======
+            $formProgressBar.Close()
             # ポップアップを表示
-            $popup.popup("勤務地の情報リストが見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
-        
+            $popup.popup($infoTextFileName +"が見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
             # 処理を中断し、終了
             breakExcel
             exit
@@ -443,6 +445,14 @@ if ($koguchiSheet.cells.item(80, 6).text -eq "") {
     exit
 }
 # --- 印鑑のコピー ---
+# 勤務表の該当シートの図形を取得
+$allShapes = $kinmuhyouSheet.shapes
+# コピペした時に図形のサイズを変更しないように設定する
+# 2: セルに合わせて移動するがサイズ変更はしない
+foreach ($shape in $allShapes) {
+    $shape.placement = 2
+}
+
 # 印鑑をコピペしたいセルの位置
 $targetStampCell = "AD82"
 
@@ -477,9 +487,6 @@ if (!($haveStamp)) {
 
 # 文字色の変更（全部黒に）
 $koguchiSheet.range("A1:BN90").font.colorindex = 1
-
-# ×ボタンを押したとき、処理途中のものを削除しよう
-
 
 # =========プログレスバーを進める8/10 =======
 $progressBar.Value += 2
@@ -567,11 +574,14 @@ Rename-Item -path $koguchi -NewName $koguchiNewFileName -ErrorAction:Stop
 
 # =======プログレスバーの終了8/10========
 $progressBar.Value += 2
-$finish = $formProgressBar.Show()
+$formProgressBar.Show()
 $formProgressBar.Close()
 
 # 正常に終了したときポップアップを表示
 $popup.popup("お待たせしました！正常に終了しました`r`n仕上がりを確認してください",0,"正常終了",64) | Out-Null    
+
+# 最後は「開く」「終了」の2択
+# 開く→できあがったところのエクスプローラーを表示する
 
 # 使用したプロセスの解放
 $kinmuhyouBook = $null
@@ -580,7 +590,3 @@ $koguchiBook = $null
 $koguchiSheet = $null
 $koguchiCell = $null
 [GC]::Collect()
-
-
-# 最後は「開く」「終了」の2択
-# 開く→できあがったところのエクスプローラーを表示する
