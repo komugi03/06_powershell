@@ -83,6 +83,8 @@ else {
 # (現在日によって変わるので、get-date -Format Y にはしていない)
 $yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？`r`n`r`n「いいえ」で他の月を選択できます",'作成する小口の対象年月','YesNo','Question')
 
+
+
 # 今年を小口作成の対象年とする
 $targetYear = $thisYear
 
@@ -90,23 +92,21 @@ $targetYear = $thisYear
 if($yesNo_yearMonthAreCorrect -eq 'No'){
     
     # フォントの指定
-    $Font = New-Object System.Drawing.Font("MS UI Gothic",9)
+    $Font = New-Object System.Drawing.Font("Yu Gothic UI",8)
 
     # フォーム全体の設定
     $form = New-Object System.Windows.Forms.Form
     $form.Text = "作成する小口の対象年月"
     $form.Size = New-Object System.Drawing.Size(265,200)
     $form.StartPosition = "CenterScreen"
-    write-host ("form.font" + $form.font)
     $form.font = $Font
-    $form.font
 
     # ラベルを表示
     $label = New-Object System.Windows.Forms.Label
     $label.Location = New-Object System.Drawing.Point(10,10)
     $label.Size = New-Object System.Drawing.Size(270,30)
     $label.Text = "作成したい小口の年月を選択してください"
-    $label.Font = $Font
+    # $label.Font = $Font
     $form.Controls.Add($label)
 
     # OKボタンの設定
@@ -121,7 +121,6 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
     # キャンセルボタンの設定
     $CancelButton = New-Object System.Windows.Forms.Button
     $CancelButton.Location = New-Object System.Drawing.Point(130,100)
-
     $CancelButton.Size = New-Object System.Drawing.Size(75,30)
     $CancelButton.Text = "Cancel"
     $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
@@ -135,7 +134,6 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
     # リスト以外の入力を許可しない
     $Combo.DropDownStyle = "DropDownList"
     $Combo.FlatStyle = "standard"
-    # $Combo.font = $Font
     $Combo.BackColor = "#005050"
     $Combo.ForeColor = "white"
         
