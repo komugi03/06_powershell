@@ -24,41 +24,17 @@ function breakExcel {
     $koguchiCell = $null
     # ガベージコレクト
     [GC]::Collect()
-    # # 処理を終了する
-    # exit
+    # 処理を終了する
+    exit
 }
 
 # 引数の空白を除きファイル名として使えない文字を消す関数
 # fileName : ファイル名
 function remove-invalidFileNameChars ($fileName) {
-    $fileNameRemovedSpace = $fileName -replace "　", ""　-replace " ", ""
+    $fileNameRemovedSpace = $fileName -replace "　", "" -replace " ", ""
     $invalidChars = [IO.Path]::GetInvalidFileNameChars() -join ''
     $regex = "[{0}]" -f [RegEx]::Escape($invalidChars)
     return $fileNameRemovedSpace -replace $regex
-}
-
-# フォーム全体の設定をする関数
-# formText : フォームの本文（文字列）
-# formYoko : フォームの横幅
-# formTate : フォームの縦幅
-function makeForm ($formText, $formYoko, $formTate) {
-    $form = New-Object System.Windows.Forms.Form
-    $form.Text = $formText
-    $form.Size = New-Object System.Drawing.Size($formYoko,$formTate)
-    $form.StartPosition = "CenterScreen"
-    $form.font = $Font
-}
-
-# ラベルを表示する関数
-# $labelText : ラベルに書き込む文字列
-# $form : フォームオブジェクト
-function makeLabel ($labelText, $form) {
-    $label = New-Object System.Windows.Forms.Label
-    $label.Location = New-Object System.Drawing.Point(10,10)
-    $label.Size = New-Object System.Drawing.Size(270,30)
-    $label.Text = $labelText
-    $form.Controls.Add($label)
-    return $form
 }
 
 # -------------------- 主処理の準備 --------------------------
@@ -106,7 +82,6 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
     $label.Location = New-Object System.Drawing.Point(10,10)
     $label.Size = New-Object System.Drawing.Size(270,30)
     $label.Text = "作成したい小口の年月を選択してください"
-    # $label.Font = $Font
     $form.Controls.Add($label)
 
     # OKボタンの設定
@@ -236,9 +211,7 @@ $formProgressBar = New-Object System.Windows.Forms.Form
 $formProgressBar.Size = "300,200"
 $formProgressBar.Startposition = "CenterScreen"
 $formProgressBar.Text = "作成中…"
-$formProgressBar.font
 $formProgressBar.font = $Font
-$formProgressBar.font
 
 # プログレスバー用のラベルを用意
 $progressLabel = New-Object System.Windows.Forms.Label
@@ -335,9 +308,7 @@ for ($row = 14; $row -le 44; $row++) {
                 # ポップアップを表示
                 $popup.popup("勤務地の情報が登録されていません`r`n初期設定もしくは上書きし、やり直してください",0,"やり直してください",48) | Out-Null
                 # 処理を中断し、終了
-                breakExcel
-                exit
-                
+                breakExcel                
             }
             
             # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
@@ -410,7 +381,6 @@ for ($row = 14; $row -le 44; $row++) {
             $popup.popup($infoTextFileName +"が見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
             # 処理を中断し、終了
             breakExcel
-            exit
         }
         
         
@@ -438,7 +408,6 @@ $koguchiSheet.cells.item(82, 21) = $targetPersonName
 if ($koguchiSheet.cells.item(82, 21).text -eq "") {
     $popup.popup($targetMonth + "月の勤務表に【名前】が記載されていません`r`n処理を中断します",0,"やり直してください",48) | Out-Null
     breakExcel
-    exit
 }
 
 # --- 所属のコピー ---
@@ -450,7 +419,6 @@ $koguchiSheet.cells.item(80, 6) = $Matches.affliationName
 if ($koguchiSheet.cells.item(80, 6).text -eq "") {
     $popup.popup($targetMonth + "月の勤務表に【所属】が記載されていません`r`n処理を中断します",0,"やり直してください",48) | Out-Null
     breakExcel
-    exit
 }
 # --- 印鑑のコピー ---
 # 勤務表の該当シートの図形を取得
@@ -486,11 +454,9 @@ if ($koguchiSheet.shapes.count -eq $numberOfObject) {
 
 # 印鑑がないかもしれない場合注意喚起
 if (!($haveStamp)) {
-
+    # ポップアップを表示
     $popup.popup("印鑑が勤務表に入っていない`r`nまたは印から大幅にずれている可能性があります`r`nやり直してください",0,"やり直してください",48) | Out-Null
     breakExcel
-    exit
-
 }
 
 # 文字色の変更（全部黒に）
@@ -584,8 +550,13 @@ $progressBar.Value += 2
 $formProgressBar.Show()
 $formProgressBar.Close()
 
-# 正常に終了したときポップアップを表示
-$successEnd = $popup.popup($targetPersonName + "さんの`r`n" + $targetYear + "年" + $targetMonth + "月の小口が完成しました : )`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
+# ----------- 正常に終了したときポップアップを表示 ----------
+# 氏名の空白をなくす
+if($targetPersonName -match ' ' -or $targetPersonName -match '　'){
+    $targetPersonName = $targetPersonName.replace('　', '  ')
+    $targetPersonName = $targetPersonName.replace(' ', '')
+}
+$successEnd = $popup.popup($targetPersonName + "さんの`r`n" + $targetYear + "年" + $targetMonth + "月の小口が完成しました : )`r`n`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
 
 # ポップアップのOKが押されたら作成した小口が格納されているフォルダを開く
 if($successEnd -eq '1'){
