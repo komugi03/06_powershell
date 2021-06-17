@@ -1,8 +1,6 @@
 # 
 # 勤務表をもとに小口交通費請求書を作成するPowershell
 # 
-# 勤務表のファイル名：<3桁の社員番号>_勤務表_M月_<氏名>.xlsx
-# 
 
 # ---------------アセンブリの読み込み---------------
 Add-Type -AssemblyName System.Windows.Forms
@@ -151,7 +149,7 @@ if($yesNo_yearMonthAreCorrect -eq 'No'){
 $popup = new-object -comobject wscript.shell
 
 # ----------------------小口テンプレを取得------------------------
-$koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "小口交通費・出張旅費精算明細書_テンプレ.xlsx"
+$koguchiTemplate = Get-ChildItem -Recurse -File | ? Name -Match "^小口交通費・出張旅費精算明細書_テンプレ.xlsx$"
 # 小口テンプレの個数確認
 if ($koguchiTemplate.Count -lt 1) {
     # ポップアップを表示
@@ -306,7 +304,7 @@ for ($row = 14; $row -le 44; $row++) {
                 # ======= プログレスバーを閉じる =======
                 $formProgressBar.Close()
                 # ポップアップを表示
-                $popup.popup("勤務地の情報が登録されていません`r`n初期設定もしくは上書きし、やり直してください",0,"やり直してください",48) | Out-Null
+                $popup.popup("勤務地の情報が登録されていません`r`n`r`n初期設定もしくは上書きし、やり直してください",0,"やり直してください",48) | Out-Null
                 # 処理を中断し、終了
                 breakExcel                
             }
@@ -454,8 +452,11 @@ if ($koguchiSheet.shapes.count -eq $numberOfObject) {
 
 # 印鑑がないかもしれない場合注意喚起
 if (!($haveStamp)) {
+    # ======= プログレスバーを閉じる =======
+    $formProgressBar.Close()
     # ポップアップを表示
-    $popup.popup("印鑑が勤務表に入っていない`r`nまたは印から大幅にずれている可能性があります`r`nやり直してください",0,"やり直してください",48) | Out-Null
+    $popup.popup("印鑑が勤務表に入っていない`r`nまたは「印」から大幅にずれている可能性があります`r`n`r`n「印」の上に印鑑を貼り付けてやり直してください",0,"やり直してください",48) | Out-Null
+    # 処理を中断し、終了
     breakExcel
 }
 
