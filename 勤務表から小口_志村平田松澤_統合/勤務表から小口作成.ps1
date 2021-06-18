@@ -43,7 +43,7 @@ $thisMonth = (Get-Date).Month
 $today = (Get-Date).Day
 
 # 現在日時から作成するべき勤務表の月次を判定
-# 24日までは当月分を作る
+# 24日までは先月分を作る
 if ($today -le 24) {
     # 前の月を小口作成の対象月とする
     $targetMonth = (Get-date).AddMonths(-1).month
@@ -56,7 +56,6 @@ else {
 # 作成する小口の年月が合っているか確認するダイアログを表示
 # (現在日によって変わるので、get-date -Format Y にはしていない)
 $yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("作成するのは 【 $thisYear 年 $targetMonth 月 】の小口でよろしいですか？`r`n`r`n「いいえ」で他の月を選択できます",'作成する小口の対象年月','YesNo','Question')
-
 
 
 # 今年を小口作成の対象年とする
