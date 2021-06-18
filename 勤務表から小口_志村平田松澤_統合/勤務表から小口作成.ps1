@@ -163,12 +163,15 @@ elseif ($koguchiTemplate.Count -gt 1) {
 
 # -----------作成した小口を格納するフォルダに、テンプレートをコピーする------------------
 
+# 小口格納フォルダ名（変更があった場合はこの文字列を変更する）
+$koguchiKakunousakiName = "作成済小口明細書"
+
 # 小口格納フォルダが存在していない場合は作成する
-if(!(Test-Path $PWD"\作成した小口交通費請求書")){
-    New-Item -Path $PWD"\作成した小口交通費請求書" -ItemType Directory | Out-Null
+if(!(Test-Path $PWD"\$koguchiKakunousakiName")){
+    New-Item -Path $PWD"\$koguchiKakunousakiName" -ItemType Directory | Out-Null
 }
 
-$koguchi = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath "小口交通費・出張旅費精算明細書_コピー.xlsx"
+$koguchi = Join-Path $PWD $koguchiKakunousakiName | Join-Path -ChildPath "小口交通費・出張旅費精算明細書_コピー.xlsx"
 Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 
 # ----------------テンプレートから小口交通費請求書を作成する---------------------
@@ -484,7 +487,7 @@ $koguchiNewFileName = $kinmuhyou.name.Substring(0, 3) + "_小口交通費・出張旅費精
 # ファイル名に使えない文字が入っていたら削除する(氏名の間の空白など)
 $koguchiNewFileName = remove-invalidFileNameChars $koguchiNewFileName
 # 新しい小口ファイルのフルパス
-$koguchiNewfullPath = Join-Path $PWD "作成した小口交通費請求書" | Join-Path -ChildPath $koguchiNewFileName
+$koguchiNewfullPath = Join-Path $PWD $koguchiKakunousakiName | Join-Path -ChildPath $koguchiNewFileName
 
 # ------------ファイル名を変更----------------
 
@@ -560,7 +563,7 @@ $successEnd = $popup.popup($targetPersonName + "さんの`r`n" + $targetYear + "年"
 
 # ポップアップのOKが押されたら作成した小口が格納されているフォルダを開く
 if($successEnd -eq '1'){
-    Start-Process $PWD"\作成した小口交通費請求書"
+    Start-Process $PWD"\$koguchiKakunousakiName"
 }
 
 # 使用したプロセスの解放
