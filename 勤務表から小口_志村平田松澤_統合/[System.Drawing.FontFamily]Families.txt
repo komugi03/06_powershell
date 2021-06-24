@@ -1,0 +1,181 @@
+Name
+----
+Arial
+Arial Black
+Arial Narrow
+Arial Unicode MS
+Bahnschrift
+Bahnschrift Condensed
+Bahnschrift Light
+Bahnschrift Light Condensed
+Bahnschrift Light SemiCondensed
+Bahnschrift SemiBold
+Bahnschrift SemiBold Condensed
+Bahnschrift SemiBold SemiConden
+Bahnschrift SemiCondensed
+Bahnschrift SemiLight
+Bahnschrift SemiLight Condensed
+Bahnschrift SemiLight SemiConde
+BIZ UDPゴシック
+BIZ UDP明朝 Medium
+BIZ UDゴシック
+BIZ UD明朝 Medium
+Book Antiqua
+Bookman Old Style
+Bookshelf Symbol 7
+Bradley Hand ITC
+Calibri
+Calibri Light
+Cambria
+Cambria Math
+Candara
+Candara Light
+Century
+Century Gothic
+Comic Sans MS
+Consolas
+Constantia
+Corbel
+Corbel Light
+Courier New
+Ebrima
+Franklin Gothic Medium
+Freestyle Script
+French Script MT
+Gabriola
+Gadugi
+Garamond
+Georgia
+HGP創英角ｺﾞｼｯｸUB
+HGP創英角ﾎﾟｯﾌﾟ体
+HGP創英ﾌﾟﾚｾﾞﾝｽEB
+HGP教科書体
+HGP明朝B
+HGP明朝E
+HGP行書体
+HGPｺﾞｼｯｸE
+HGPｺﾞｼｯｸM
+HGS創英角ｺﾞｼｯｸUB
+HGS創英角ﾎﾟｯﾌﾟ体
+HGS創英ﾌﾟﾚｾﾞﾝｽEB
+HGS教科書体
+HGS明朝B
+HGS明朝E
+HGS行書体
+HGSｺﾞｼｯｸE
+HGSｺﾞｼｯｸM
+HG丸ｺﾞｼｯｸM-PRO
+HG創英角ｺﾞｼｯｸUB
+HG創英角ﾎﾟｯﾌﾟ体
+HG創英ﾌﾟﾚｾﾞﾝｽEB
+HG教科書体
+HG明朝B
+HG明朝E
+HG正楷書体-PRO
+HG行書体
+HGｺﾞｼｯｸE
+HGｺﾞｼｯｸM
+HoloLens MDL2 Assets
+Impact
+Ink Free
+Javanese Text
+Juice ITC
+Kristen ITC
+Leelawadee UI
+Leelawadee UI Semilight
+Lucida Console
+Lucida Handwriting
+Lucida Sans Unicode
+Malgun Gothic
+Malgun Gothic Semilight
+Marlett
+Meiryo UI
+Microsoft Himalaya
+Microsoft JhengHei
+Microsoft JhengHei Light
+Microsoft JhengHei UI
+Microsoft JhengHei UI Light
+Microsoft New Tai Lue
+Microsoft PhagsPa
+Microsoft Sans Serif
+Microsoft Tai Le
+Microsoft YaHei
+Microsoft YaHei Light
+Microsoft YaHei UI
+Microsoft YaHei UI Light
+Microsoft Yi Baiti
+MingLiU-ExtB
+MingLiU_HKSCS-ExtB
+Mistral
+Mongolian Baiti
+Monotype Corsiva
+MS Outlook
+MS Reference Sans Serif
+MS Reference Specialty
+■MS UI Gothic
+MT Extra
+MV Boli
+Myanmar Text
+Nirmala UI
+Nirmala UI Semilight
+NSimSun
+OCRB
+Palatino Linotype
+Papyrus
+PMingLiU-ExtB
+Pristina
+Segoe MDL2 Assets
+Segoe Print
+Segoe Script
+Segoe UI
+Segoe UI Black
+Segoe UI Emoji
+Segoe UI Historic
+Segoe UI Light
+Segoe UI Semibold
+Segoe UI Semilight
+Segoe UI Symbol
+SimSun
+SimSun-ExtB
+Sitka Banner
+Sitka Display
+Sitka Heading
+Sitka Small
+Sitka Subheading
+Sitka Text
+Sylfaen
+Symbol
+Tahoma
+Tempus Sans ITC
+Tera Special
+Times New Roman
+Trebuchet MS
+UD デジタル 教科書体 N-B
+UD デジタル 教科書体 N-R
+UD デジタル 教科書体 NK-B
+UD デジタル 教科書体 NK-R
+UD デジタル 教科書体 NP-B
+UD デジタル 教科書体 NP-R
+Verdana
+Webdings
+Wingdings
+Wingdings 2
+Wingdings 3
+Yu Gothic UI
+Yu Gothic UI Light
+Yu Gothic UI Semibold
+Yu Gothic UI Semilight
+メイリオ
+游ゴシック
+游ゴシック Light
+游ゴシック Medium
+游明朝
+游明朝 Demibold
+游明朝 Light
+ＭＳ ゴシック
+ＭＳ 明朝
+ＭＳ Ｐゴシック
+ＭＳ Ｐ明朝
+
+# ---------------アセンブリの読み込み---------------
+Add-Type -AssemblyName System.Windows.Forms
