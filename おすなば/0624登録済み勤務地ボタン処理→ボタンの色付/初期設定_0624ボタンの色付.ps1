@@ -121,7 +121,7 @@ if ($attentionResult -eq "Cancel") {
 
 
 # (現在日によって変わるので、get-date -Format Y にはしていない)
-$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("【 $thisYear 年 $targetMonth 月 】の勤務表をもとに初期設定をしますか？`r`n`r`n「いいえ」で他の月を選択できます", '作成する小口の対象年月', 'YesNo', 'Question')
+$yesNo_yearMonthAreCorrect = [System.Windows.Forms.MessageBox]::Show("【 $thisYear 年 $targetMonth 月 】の勤務地を登録しますか？`r`n`r`n「いいえ」で他の月を選択できます", '作成する小口の対象年月', 'YesNo', 'Question')
 
 # 今年を小口作成の対象年とする
 $targetYear = $thisYear
@@ -229,8 +229,7 @@ $waitForm.Controls.Add($label)
 #PictureBox
 $pic = New-Object System.Windows.Forms.PictureBox
 $pic.Size = New-Object System.Drawing.Size(50, 50)
-# $pic.Image = [System.Drawing.Image]::FromFile($PWD.Path + "\resources\picutures\お待ちください猫.png")
-$pic.Image = [System.Drawing.Image]::FromFile("C:\Users\bvs20005\Documents\03_基盤講習\PowerShell-Lesson\勤務表から小口作成ツール\参考資料\お待ちください猫.png")
+$pic.Image = [System.Drawing.Image]::FromFile($PWD.Path + "\resources\picutures\お待ちください猫.png")
 $pic.Location = New-Object System.Drawing.Point(20,20) 
 $pic.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
 $waitForm.Controls.Add($pic)
@@ -359,7 +358,7 @@ if ($workPlaceArray.Length -eq 0) {
     $waitForm.Close()
     
     # ポップアップを表示
-    $popup.popup("$targetmonth 月の勤務表の勤務地は既に登録されています。", 0, "登録済み", 64) | Out-Null
+    $popup.popup("$targetmonth 月の勤務地はすべて登録されています。", 0, "登録済み", 64) | Out-Null
     breakExcel    
     exit
 }
@@ -493,7 +492,7 @@ function drawRegisteredButton {
     $registeredButton.Text = $Args[1]
     $registeredButton.DialogResult = [System.Windows.Forms.DialogResult]::No
     $registeredButton.Backcolor = "palegreen"
-    $registeredButton.Forecolor = "green"
+    $registeredButton.Forecolor = "darkgreen"
     # ツール用引数.txt が存在していない or 中身が空の時はボタンを非活性にする
     if (!(Test-Path $infoTextFileFullpath) -or ($argumentText.Length -eq 0)) {
         $registeredButton.Enabled = $false; 
@@ -540,13 +539,13 @@ $waitForm.Close()
     drawOKButton 610 "OK" $forms[$i]
 
     # 在宅ボタン作成関数呼び出し
-    drawAtHomeButton 10 "★在宅勤務もしくは定期がある場合はここをクリック★" $forms[$i]
+    drawAtHomeButton 10 "★在宅/定期/登録対象外はここをクリック★" $forms[$i]
 
     # 戻るボタン作成関数呼び出し
     drawReturnButton 610 "戻る" $forms[$i]
 
     # 登録済み勤務地から選択ボタン作成関数呼び出し
-    drawRegisteredButton 10 "☆登録済みの勤務地から選択する場合はここをクリック☆" $forms[$i]
+    drawRegisteredButton 10 "★登録済みの勤務地から選択する場合はここをクリック★" $forms[$i]
 
     # =============================== input ===============================
 

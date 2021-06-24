@@ -366,18 +366,51 @@ $formProgressBar.Text = "作成中…"
 # [System.Drawing.FontFamily]::Families
 
 
-# ポップアップを作成
-$popup = new-object -comobject wscript.shell
+# # ポップアップを作成
+# $popup = new-object -comobject wscript.shell
 
-$targetPersonName = "志村瞳"
-# $targetPersonName = '平田 隆'
-# $targetPersonName = "松澤　夏海"
+# $targetPersonName = "志村瞳"
+# # $targetPersonName = '平田 隆'
+# # $targetPersonName = "松澤　夏海"
 
-if($targetPersonName -match ' ' -or $targetPersonName -match '　'){
-    # $targetPersonName = $targetPersonName -replace '　', '' -replace ' ', ''
-    $targetPersonName = $targetPersonName.replace('　', '  ')
-    $targetPersonName = $targetPersonName.replace(' ', '')
-}
+# if($targetPersonName -match ' ' -or $targetPersonName -match '　'){
+#     # $targetPersonName = $targetPersonName -replace '　', '' -replace ' ', ''
+#     $targetPersonName = $targetPersonName.replace('　', '  ')
+#     $targetPersonName = $targetPersonName.replace(' ', '')
+# }
 
-$successEnd = $popup.popup($targetPersonName + "さん : )`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
+# $successEnd = $popup.popup($targetPersonName + "さん : )`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
 
+
+# フォーム全体の設定
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "作成する小口の対象年月"
+$form.Size = New-Object System.Drawing.Size(265, 200)
+$form.StartPosition = "CenterScreen"
+$form.font = $font
+# フォームを最大化させたときのサイズを指定する
+# $form.MaximumSize = "265,200"
+# $form.MinimumSize = "265,200"
+# フォームの大きさを固定する
+$form.formborderstyle = "FixedSingle"
+
+# アイコン(タイトルの左側に表示されるもの)を非表示にする
+$form.ShowIcon = $False
+
+# ラベルを表示
+$label = New-Object System.Windows.Forms.Label
+$label.Location = New-Object System.Drawing.Point(10, 10)
+$label.Size = New-Object System.Drawing.Size(270, 30)
+$label.Text = "作成したい小口の年月を選択してください"
+$form.Controls.Add($label)
+
+# OKボタンの設定
+$OKButton = New-Object System.Windows.Forms.Button
+$OKButton.Location = New-Object System.Drawing.Point(40, 100)
+$OKButton.Size = New-Object System.Drawing.Size(75, 30)
+$OKButton.Text = "OK"
+$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$form.AcceptButton = $OKButton
+$form.Controls.Add($OKButton)
+
+$form.ShowDialog()
