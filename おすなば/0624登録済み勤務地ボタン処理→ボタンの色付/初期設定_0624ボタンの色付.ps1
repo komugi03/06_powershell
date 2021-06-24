@@ -229,7 +229,7 @@ $waitForm.Controls.Add($label)
 #PictureBox
 $pic = New-Object System.Windows.Forms.PictureBox
 $pic.Size = New-Object System.Drawing.Size(50, 50)
-$pic.Image = [System.Drawing.Image]::FromFile($PWD.Path + "\resources\picutures\‚¨‘Ò‚¿‚­‚¾‚³‚¢”L.png")
+$pic.Image = [System.Drawing.Image]::FromFile($PWD.Path + "\resources\pictures\‚¨‘Ò‚¿‚­‚¾‚³‚¢”L.png")
 $pic.Location = New-Object System.Drawing.Point(20,20) 
 $pic.SizeMode = [System.Windows.Forms.PictureBoxSizeMode]::Zoom
 $waitForm.Controls.Add($pic)
