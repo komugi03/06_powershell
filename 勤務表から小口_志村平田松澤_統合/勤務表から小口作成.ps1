@@ -270,8 +270,19 @@ $koguchiRowCounter = 11
 for ($row = 14; $row -le 44; $row++) {
     # 勤務地判定のために「勤務内容」欄の文字列を取得
     $workPlace = $kinmuhyouSheet.cells.item($row, 26).formula
-    $workPlaceLength = [int]$workPlace.length + 1
     
+    # --- 出勤してるけど勤務内容に書いてない場合の処理 ---
+    # 「勤務実績」欄の終了時刻の文字列を取得
+    $kinmujisseki = $kinmuhyouSheet.cells.item($row, 7).text
+    
+    # 「作業場所」欄の文字列を取得
+    $sagyoubasho = $kinmuhyouSheet.cells.item(7, 7).text
+    
+    # 出勤してるけど勤務内容に勤務地が書いてない場合
+    if ($kinmujisseki -ne "" -and $workPlace -eq "") {
+        # 作業場所に書いてある文字列を勤務地とする
+        $workPlace = $sagyoubasho
+    }
     # 在宅か休みの時以外の場合、小口に記入
     if ($workPlace -ne "" -and $workPlace -ne '在宅') {
         
@@ -284,6 +295,8 @@ for ($row = 14; $row -le 44; $row++) {
         $koutsukikan = 26
         # 金額(開始位置)
         $kingaku = 30
+        # Substring()で取り除きたい、「勤務地_」の総文字数
+        $workPlaceLength = [int]$workPlace.length + 1
         
         # ---------------勤務地情報リストを読み込む---------------------
         # 勤務地情報リストが書いてあるテキスト
@@ -378,12 +391,9 @@ for ($row = 14; $row -le 44; $row++) {
             $popup.popup($infoTextFileName +"が見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
             # 処理を中断し、終了
             breakExcel
-        }
-        
-        
-        # 「勤務内容」欄が空欄or在宅以外の処理終了
+        }    
+        # 「勤務内容」欄が空欄or在宅以外の処理 終了
     }
-
 }
 
 # =========プログレスバーを進める6/10 =======
