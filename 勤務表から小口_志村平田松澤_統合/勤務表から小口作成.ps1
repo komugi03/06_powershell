@@ -400,15 +400,20 @@ for ($row = 14; $row -le 44; $row++) {
 $progressBar.Value += 2
 $formProgressBar.Show()
 
-# ------------- 個人情報欄のコピー --------------
-# --- 年月日のコピー ---
+# 空行がある場合（小口の行カウンターが、記入可能行の終わり=74 未満のとき）は「適用（行先、要件）」に「以下余白」記入
+if($koguchiRowCounter -lt 74){
+    $koguchiSheet.Cells.item($koguchiRowCounter,6) = '以下余白'
+}
+
+# ------------- 個人情報欄の入力 --------------
+# --- 年月日の入力 ---
 $koguchiSheet.cells.item(78, 4) = $targetYear
 $koguchiSheet.cells.item(78, 8) = $targetMonth
 
 # 月の最終日を日付欄に設定
 $koguchiSheet.cells.item(78, 11) = [DateTime]::DaysInMonth($targetYear,$targetMonth)
 
-# --- 名前のコピー ---
+# --- 名前の入力 ---
 $targetPersonName = $kinmuhyouSheet.cells.range("W7").text
 $koguchiSheet.cells.item(82, 21) = $targetPersonName
 # 勤務表の名前が空白だった場合処理を中断する
@@ -417,7 +422,7 @@ if ($koguchiSheet.cells.item(82, 21).text -eq "") {
     breakExcel
 }
 
-# --- 所属のコピー ---
+# --- 所属の入力 ---
 $affiliation = $kinmuhyouSheet.cells.range("W6").text
 # "部" を削除する
 $affiliation -match "(?<affliationName>.+?)部" | Out-Null
@@ -427,7 +432,7 @@ if ($koguchiSheet.cells.item(80, 6).text -eq "") {
     $popup.popup($targetMonth + "月の勤務表に【所属】が記載されていません`r`n処理を中断します",0,"やり直してください",48) | Out-Null
     breakExcel
 }
-# --- 印鑑のコピー ---
+# --- 印鑑の入力 ---
 # 勤務表の該当シートの図形を取得
 $allShapes = $kinmuhyouSheet.shapes
 # コピペした時に図形のサイズを変更しないように設定する
