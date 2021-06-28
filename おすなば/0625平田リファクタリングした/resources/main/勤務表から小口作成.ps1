@@ -127,12 +127,10 @@ $fileNameMonth = ("$targetYear" + "$targetMonth00")
 # 勤務表ファイルを取得
 $kinmuhyou = Get-ChildItem -Recurse -File -path ..\..\ | ? Name -Match ("[0-9]{3}_勤務表_" + $fileNameMonth + "_.+")
 
-$targetMonth
 # 該当勤務表ファイルの個数確認
 if ($kinmuhyou.Count -lt 1) {
     
     # ポップアップを表示
-    $targetMonth
     $popup.popup("$targetMonth 月の勤務表ファイルが存在しません",0,"やり直してください",48) | Out-Null
     # 小口のテンプレのコピーを削除する
     Remove-Item -Path $koguchi
@@ -445,21 +443,19 @@ $koguchiNewFileName = $kinmuhyou.name.Substring(0, 3) + "_小口交通費・出張旅費精
 # ファイル名に使えない文字が入っていたら削除する(氏名の間の空白など)
 $koguchiNewFileName = remove-invalidFileNameChars $koguchiNewFileName
 # 新しい小口ファイルのフルパス
-$koguchiNewfullPath = Join-Path $PWD $koguchiKakunousakiName | Join-Path -ChildPath $koguchiNewFileName
+$koguchiNewFullPath = join-path -Path $PWD -ChildPath ..\..\$koguchiKakunousakiName\$koguchiNewFileName
 
 # ------------ファイル名を変更----------------
 
 # すでに対象月の小口が作られているときの処理
 # ※1桁まで対応
-# if (Test-Path ($koguchiNewfullPath + "_$numberOfFiles.xlsx")) {
 if (Test-Path ($koguchiNewfullPath + '_' + "[1-9]" + '.xlsx')) {
 
     
     # ------対象年月の小口が2つ以上存在してる場合--------
-    # <社員番号>_小口交通費・出張旅費精算明細書_YYYYMM_<氏名>_<numberOfFiles>.xlsxが存在する
 
     # 同じ月の小口のファイル名を取得(_1など数字がついている)
-    $onajiFileName = Get-ChildItem -Recurse | Where-Object name -CMatch "[0-9]{3}_小口交通費・出張旅費精算明細書_.+_.+_"
+    $onajiFileName = Get-ChildItem -Recurse -File -path ..\..\ | Where-Object name -CMatch "[0-9]{3}_小口交通費・出張旅費精算明細書_.+_.+_"
 
     # 同じ月の小口のファイル名を_で分ける
     # [0]: <社員番号>
