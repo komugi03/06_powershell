@@ -430,21 +430,28 @@ $karibaraiForm.font = $Font
 # ラベルを表示
 $karibaraiLabel = New-Object System.Windows.Forms.Label
 $karibaraiLabel.Location = New-Object System.Drawing.Point(10,10)
-$karibaraiLabel.Size = New-Object System.Drawing.Size(270,50)
-$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いが`r`nあれば以下に入力し「あり」を`r`nなければ「仮払いなし」を押してください"
+$karibaraiLabel.Size = New-Object System.Drawing.Size(200,30)
+$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いがありますか？"
+$karibaraiForm.Controls.Add($karibaraiLabel)
+
+# ラベルを表示
+$karibaraiLabel = New-Object System.Windows.Forms.Label
+$karibaraiLabel.Location = New-Object System.Drawing.Point(10,51)
+$karibaraiLabel.Size = New-Object System.Drawing.Size(70,20)
+$karibaraiLabel.Text = "仮払い金額："
 $karibaraiForm.Controls.Add($karibaraiLabel)
 
 # テキストボックス
 $karibaraiTextBox = New-Object System.Windows.Forms.TextBox 
-$karibaraiTextBox.Location = New-Object System.Drawing.Point(10,60) 
-$karibaraiTextBox.Size = New-Object System.Drawing.Size(150,100) 
+$karibaraiTextBox.Location = New-Object System.Drawing.Point(80,50) 
+$karibaraiTextBox.Size = New-Object System.Drawing.Size(100,100) 
 $karibaraiForm.Controls.Add($karibaraiTextBox)
 
 # OKボタンの設定
 $OKButton = New-Object System.Windows.Forms.Button
 $OKButton.Location = New-Object System.Drawing.Point(40,100)
 $OKButton.Size = New-Object System.Drawing.Size(75,30)
-$OKButton.Text = "あり"
+$OKButton.Text = "OK"
 $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
 $karibaraiForm.AcceptButton = $OKButton
 $karibaraiForm.Controls.Add($OKButton)
@@ -458,27 +465,59 @@ $CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
 $karibaraiForm.CancelButton = $CancelButton
 $karibaraiForm.Controls.Add($CancelButton)
 
-# 金額が半角数字だった場合に表示されるエラーメッセージ
-# $kingakuErrorMessage = drawLabel 130 $kingakuTextBoxLocate 270 " " $forms[$i]
-# $kingakuErrorMessage.foreColor = "red"
-
 $yesNo_karibarai = $karibaraiForm.showDialog()
 
-# OKボタンが押されたらテキストボックスの文字列を受け取る
-
-# テキストボックスが空なままOKボタンが押されたら
-if($yesNo_karibarai -eq 'OK'){
-
-    if($karibaraiTextBox.text -eq ""){
-        write-host "ちゃんと入れてね"
-    }
-    # 半角数字かどうかの判定
-    elseif(![int]::TryParse($karibaraiTextBox.text, [ref]$null)){
-        write-host "半角数字じゃないよ"
-    }else {
-    }
-}
-# キャンセルが押されたら
-elseif($yesNo_karibarai -eq 'Cancel'){
+# キャンセルボタンか×ボタンが押されたら何もしない
+if($yesNo_karibarai -eq 'Cancel'){
     write-host "Cancelが押されたよ"
+}
+else{
+    # OKボタンが押されたらテキストボックスの文字列を受け取る
+    # テキストボックスが空なままOKボタンが押されたら
+    for($yesNo_karibarai -eq 'OK'){
+
+        # OKを押してしまったけれどやっぱり仮払いなかった場合
+        if($yesNo_karibarai -eq 'Cancel'){
+            write-host "Cancelが押されたよ"
+            break
+        }
+        elseif($karibaraiTextBox.text -eq ""){
+            write-host "ちゃんと入れてね"
+            # エラー文上書きのためにサイズを0にする
+            $errorLabel.size = New-Object System.Drawing.Size(0,0)
+            # エラー文を表示
+            $errorLabelKuuchi = New-Object System.Windows.Forms.Label
+            $errorLabelKuuchi.Location = New-Object System.Drawing.Point(10,80)
+            $errorLabelKuuchi.Size = New-Object System.Drawing.Size(270,50)
+            $errorLabelKuuchi.Text = "仮払い金額を記入してください"
+            $errorLabelKuuchi.ForeColor = "red"
+            $errorLabelKuuchi.BringToFront()
+            $karibaraiForm.Controls.Add($errorLabelKuuchi)
+            
+            $yesNo_karibarai = $karibaraiForm.showDialog()
+        }
+        # 半角数字かどうかの判定
+        elseif(![int]::TryParse($karibaraiTextBox.text, [ref]$null)){
+            write-host "半角数字じゃないよ"
+            # エラー文上書きのためにサイズを0にする
+            $errorLabelKuuchi.size = New-Object System.Drawing.Size(0,0)
+            # エラー文を表示
+            $errorLabel = New-Object System.Windows.Forms.Label
+            $errorLabel.Location = New-Object System.Drawing.Point(10,80)
+            $errorLabel.Size = New-Object System.Drawing.Size(270,50)
+            $errorLabel.Text = "※半角数字で記入してください"
+            $errorLabel.ForeColor = "blue"
+            $karibaraiForm.Controls.Add($errorLabel)
+
+            $yesNo_karibarai = $karibaraiForm.showDialog()
+        }
+        # 正常に半角数字が入力された場合はテキストボックスの文字列を取得してループを抜ける
+        else{
+            # テキストボックスの文字列を取得
+            $karibaraiKingaku = $karibaraiTextBox.text
+            $karibaraiKingaku
+            # ループを抜ける
+            break
+        }
+    }
 }

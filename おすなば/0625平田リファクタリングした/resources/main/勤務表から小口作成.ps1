@@ -144,6 +144,100 @@ elseif ($kinmuhyou.Count -gt 1) {
     exit
 }
 
+# --------------- 仮払いの有無を聞く -----------------
+# フォーム全体の設定
+$karibaraiForm = New-Object System.Windows.Forms.Form
+$karibaraiForm.Text = "仮払いの有無"
+$karibaraiForm.Size = New-Object System.Drawing.Size(265,200)
+$karibaraiForm.StartPosition = "CenterScreen"
+$karibaraiForm.font = $Font
+
+# ラベルを表示
+$karibaraiLabel = New-Object System.Windows.Forms.Label
+$karibaraiLabel.Location = New-Object System.Drawing.Point(10,10)
+$karibaraiLabel.Size = New-Object System.Drawing.Size(200,30)
+$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いがありますか？"
+$karibaraiForm.Controls.Add($karibaraiLabel)
+
+# ラベルを表示
+$karibaraiLabel = New-Object System.Windows.Forms.Label
+$karibaraiLabel.Location = New-Object System.Drawing.Point(10,51)
+$karibaraiLabel.Size = New-Object System.Drawing.Size(70,20)
+$karibaraiLabel.Text = "仮払い金額："
+$karibaraiForm.Controls.Add($karibaraiLabel)
+
+# テキストボックス
+$karibaraiTextBox = New-Object System.Windows.Forms.TextBox 
+$karibaraiTextBox.Location = New-Object System.Drawing.Point(80,50) 
+$karibaraiTextBox.Size = New-Object System.Drawing.Size(100,100) 
+$karibaraiForm.Controls.Add($karibaraiTextBox)
+
+# OKボタンの設定
+$OKButton = New-Object System.Windows.Forms.Button
+$OKButton.Location = New-Object System.Drawing.Point(40,100)
+$OKButton.Size = New-Object System.Drawing.Size(75,30)
+$OKButton.Text = "OK"
+$OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$karibaraiForm.AcceptButton = $OKButton
+$karibaraiForm.Controls.Add($OKButton)
+
+# キャンセルボタンの設定
+$CancelButton = New-Object System.Windows.Forms.Button
+$CancelButton.Location = New-Object System.Drawing.Point(130,100)
+$CancelButton.Size = New-Object System.Drawing.Size(75,30)
+$CancelButton.Text = "仮払いなし"
+$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+$karibaraiForm.CancelButton = $CancelButton
+$karibaraiForm.Controls.Add($CancelButton)
+
+$yesNo_karibarai = $karibaraiForm.showDialog()
+
+# キャンセルボタンか×ボタンが押されたら何もしない
+if($yesNo_karibarai -eq 'Cancel'){
+}
+else{
+    # OKボタンが押されたらテキストボックスの文字列を受け取る
+    # テキストボックスが空なままOKボタンが押されたら
+    for($yesNo_karibarai -eq 'OK'){
+
+        # OKを押してしまったけれどやっぱり仮払いなかった場合
+        if($yesNo_karibarai -eq 'Cancel'){
+            break
+        }
+        elseif($karibaraiTextBox.text -eq ""){
+            # エラー文上書きのためにサイズを0にする
+            $errorLabel.size = New-Object System.Drawing.Size(0,0)
+            # エラー文を表示
+            $errorLabelKuuchi = New-Object System.Windows.Forms.Label
+            $errorLabelKuuchi.Location = New-Object System.Drawing.Point(10,80)
+            $errorLabelKuuchi.Size = New-Object System.Drawing.Size(270,50)
+            $errorLabelKuuchi.Text = "仮払い金額を記入してください"
+            $errorLabelKuuchi.ForeColor = "red"
+            $errorLabelKuuchi.BringToFront()
+            $karibaraiForm.Controls.Add($errorLabelKuuchi)
+            $yesNo_karibarai = $karibaraiForm.showDialog()
+        }
+        # 半角数字かどうかの判定
+        elseif(![int]::TryParse($karibaraiTextBox.text, [ref]$null)){
+            write-host "半角数字じゃないよ"
+            # エラー文上書きのためにサイズを0にする
+            $errorLabelKuuchi.size = New-Object System.Drawing.Size(0,0)
+            # エラー文を表示
+            $errorLabel = New-Object System.Windows.Forms.Label
+            $errorLabel.Location = New-Object System.Drawing.Point(10,80)
+            $errorLabel.Size = New-Object System.Drawing.Size(270,50)
+            $errorLabel.Text = "※半角数字で記入してください"
+            $errorLabel.ForeColor = "blue"
+            $karibaraiForm.Controls.Add($errorLabel)
+            $yesNo_karibarai = $karibaraiForm.showDialog()
+        }
+        # 正常に半角数字が入力された場合はテキストボックスの文字列を取得してループを抜ける
+        else{
+            # ループを抜ける
+            break
+        }
+    }
+}
 
 # --------------- 処理中のプログレスバーを表示 -------------
 
@@ -204,6 +298,12 @@ $koguchiSheet = $koguchiBook.sheets(1)
 # =========プログレスバーを進める4/10 =======
 $progressBar.Value += 2
 $formProgressBar.Show()
+
+
+# ------------- 仮払い金額を「仮払額」欄に入力する ----------------
+# テキストボックスの文字列を取得し、小口の「仮払額」欄に入力する
+$koguchiSheet.cells.item(6,2).formula = $karibaraiTextBox.text
+
 
 # ------------- 勤務表の中身を小口にコピーする ----------------
 # 「勤務内容」欄に書かれている勤務地を参考にして、勤務地情報リストテキストから該当情報を小口に記入する
@@ -286,13 +386,13 @@ for ($row = 14; $row -le 44; $row++) {
                     # 「適用（行先、要件）」に記入
                     $tekiyouText = ([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,$tekiyou) = $tekiyouText
-
+                    
                     # 「区間」に記入
                     $kukanText = ([String]$workPlaceInfo[1]).Substring($workPlaceLength, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,$kukan) = $kukanText
-
+                    
                     # 「交通機関」に記入
-
+                    
                     # 最初のお台場_を取り除いた文字列にする
                     # 小田急線`r`nJR山手線`r`nりんかい線　の状態
                     $koutsukikanText = ([String]$workPlaceInfo[2]).Substring($workPlaceLength, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
@@ -300,7 +400,7 @@ for ($row = 14; $row -le 44; $row++) {
                     
                     # 小口に記入する文字列を格納する変数を用意し、初期化する
                     $koutsukikanKaigyou = $null
-
+                    
                     # 配列が1以下じゃない間、繰り返す
                     for ($i = 0; $i -lt $koutsukikanArray.Length; $i++) {
                         # 改行コードを足す
@@ -315,19 +415,19 @@ for ($row = 14; $row -le 44; $row++) {
                     if($koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan).text -match "^.+\n.+\n.+\n.+"){
                         $koguchiSheet.Range("Z$koguchiRowCounter").RowHeight = 40
                     }
-
+                    
                     # 「金額」に記入
                     $kingakuText = ([String]$workPlaceInfo[3]).Substring($workPlaceLength, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
                     $koguchiSheet.Cells.item($koguchiRowCounter,$kingaku) = $kingakuText
-
+                    
                 }
-
+                
                 # 小口の行カウンターに3を追加し、次の行にする
                 $koguchiRowCounter = $koguchiRowCounter + 3
-
+                
             }
             
-        # 勤務地情報リストテキストが存在したときの処理終了
+            # 勤務地情報リストテキストが存在したときの処理終了
         }else{
             # ======= プログレスバーを閉じる =======
             $formProgressBar.Close()
