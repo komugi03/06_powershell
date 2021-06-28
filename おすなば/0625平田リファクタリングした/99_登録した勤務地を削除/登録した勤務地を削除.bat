@@ -1,0 +1,1 @@
+del resources\ƒc[ƒ‹—pˆø”.txt

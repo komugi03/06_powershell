@@ -382,35 +382,103 @@ $formProgressBar.Text = "作成中…"
 # $successEnd = $popup.popup($targetPersonName + "さん : )`r`nOKを押して不備がないか確認してください",0,"お待たせしました！",64)    
 
 
-# フォーム全体の設定
-$form = New-Object System.Windows.Forms.Form
-$form.Text = "作成する小口の対象年月"
-$form.Size = New-Object System.Drawing.Size(265, 200)
-$form.StartPosition = "CenterScreen"
-$form.font = $font
-# フォームを最大化させたときのサイズを指定する
-# $form.MaximumSize = "265,200"
-# $form.MinimumSize = "265,200"
-# フォームの大きさを固定する
-$form.formborderstyle = "FixedSingle"
+# # フォーム全体の設定
+# $form = New-Object System.Windows.Forms.Form
+# $form.Text = "作成する小口の対象年月"
+# $form.Size = New-Object System.Drawing.Size(265, 200)
+# $form.StartPosition = "CenterScreen"
+# $form.font = $font
+# # フォームを最大化させたときのサイズを指定する
+# # $form.MaximumSize = "265,200"
+# # $form.MinimumSize = "265,200"
+# # フォームの大きさを固定する
+# $form.formborderstyle = "FixedSingle"
 
-# アイコン(タイトルの左側に表示されるもの)を非表示にする
-$form.ShowIcon = $False
+# # アイコン(タイトルの左側に表示されるもの)を非表示にする
+# $form.ShowIcon = $False
+
+# # ラベルを表示
+# $label = New-Object System.Windows.Forms.Label
+# $label.Location = New-Object System.Drawing.Point(10, 10)
+# $label.Size = New-Object System.Drawing.Size(270, 30)
+# $label.Text = "作成したい小口の年月を選択してください"
+# $form.Controls.Add($label)
+
+# # OKボタンの設定
+# $OKButton = New-Object System.Windows.Forms.Button
+# $OKButton.Location = New-Object System.Drawing.Point(40, 100)
+# $OKButton.Size = New-Object System.Drawing.Size(75, 30)
+# $OKButton.Text = "OK"
+# $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+# $form.AcceptButton = $OKButton
+# $form.Controls.Add($OKButton)
+
+# $form.ShowDialog()
+
+
+$targetYear = "2021"
+$targetMonth = "5"
+
+# --------------- 仮払いの有無を聞く -----------------
+# フォーム全体の設定
+$karibaraiForm = New-Object System.Windows.Forms.Form
+$karibaraiForm.Text = "仮払いの有無"
+$karibaraiForm.Size = New-Object System.Drawing.Size(265,200)
+$karibaraiForm.StartPosition = "CenterScreen"
+$karibaraiForm.font = $Font
 
 # ラベルを表示
-$label = New-Object System.Windows.Forms.Label
-$label.Location = New-Object System.Drawing.Point(10, 10)
-$label.Size = New-Object System.Drawing.Size(270, 30)
-$label.Text = "作成したい小口の年月を選択してください"
-$form.Controls.Add($label)
+$karibaraiLabel = New-Object System.Windows.Forms.Label
+$karibaraiLabel.Location = New-Object System.Drawing.Point(10,10)
+$karibaraiLabel.Size = New-Object System.Drawing.Size(270,50)
+$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いが`r`nあれば以下に入力し「あり」を`r`nなければ「仮払いなし」を押してください"
+$karibaraiForm.Controls.Add($karibaraiLabel)
+
+# テキストボックス
+$karibaraiTextBox = New-Object System.Windows.Forms.TextBox 
+$karibaraiTextBox.Location = New-Object System.Drawing.Point(10,60) 
+$karibaraiTextBox.Size = New-Object System.Drawing.Size(150,100) 
+$karibaraiForm.Controls.Add($karibaraiTextBox)
 
 # OKボタンの設定
 $OKButton = New-Object System.Windows.Forms.Button
-$OKButton.Location = New-Object System.Drawing.Point(40, 100)
-$OKButton.Size = New-Object System.Drawing.Size(75, 30)
-$OKButton.Text = "OK"
+$OKButton.Location = New-Object System.Drawing.Point(40,100)
+$OKButton.Size = New-Object System.Drawing.Size(75,30)
+$OKButton.Text = "あり"
 $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-$form.AcceptButton = $OKButton
-$form.Controls.Add($OKButton)
+$karibaraiForm.AcceptButton = $OKButton
+$karibaraiForm.Controls.Add($OKButton)
 
-$form.ShowDialog()
+# キャンセルボタンの設定
+$CancelButton = New-Object System.Windows.Forms.Button
+$CancelButton.Location = New-Object System.Drawing.Point(130,100)
+$CancelButton.Size = New-Object System.Drawing.Size(75,30)
+$CancelButton.Text = "仮払いなし"
+$CancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+$karibaraiForm.CancelButton = $CancelButton
+$karibaraiForm.Controls.Add($CancelButton)
+
+# 金額が半角数字だった場合に表示されるエラーメッセージ
+# $kingakuErrorMessage = drawLabel 130 $kingakuTextBoxLocate 270 " " $forms[$i]
+# $kingakuErrorMessage.foreColor = "red"
+
+$yesNo_karibarai = $karibaraiForm.showDialog()
+
+# OKボタンが押されたらテキストボックスの文字列を受け取る
+
+# テキストボックスが空なままOKボタンが押されたら
+if($yesNo_karibarai -eq 'OK'){
+
+    if($karibaraiTextBox.text -eq ""){
+        write-host "ちゃんと入れてね"
+    }
+    # 半角数字かどうかの判定
+    elseif(![int]::TryParse($karibaraiTextBox.text, [ref]$null)){
+        write-host "半角数字じゃないよ"
+    }else {
+    }
+}
+# キャンセルが押されたら
+elseif($yesNo_karibarai -eq 'Cancel'){
+    write-host "Cancelが押されたよ"
+}
