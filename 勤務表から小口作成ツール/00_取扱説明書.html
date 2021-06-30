@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>勤務表から小口作成ツール取扱説明書</title>
+	<link rel="icon" type="image/x-icon" href="resources/images/会社アイコン.ico">
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+	<style>
+		/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+		/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+		body {
+			font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+			font-size: var(--vscode-markdown-font-size, 14px);
+			padding: 0 26px;
+			line-height: var(--vscode-markdown-line-height, 22px);
+			word-wrap: break-word;
+		}
+
+		#code-csp-warning {
+			position: fixed;
+			top: 0;
+			right: 0;
+			color: white;
+			margin: 16px;
+			text-align: center;
+			font-size: 12px;
+			font-family: sans-serif;
+			background-color: #444444;
+			cursor: pointer;
+			padding: 6px;
+			box-shadow: 1px 1px 1px rgba(0, 0, 0, .25);
+		}
+
+		#code-csp-warning:hover {
+			text-decoration: none;
+			background-color: #007acc;
+			box-shadow: 2px 2px 2px rgba(0, 0, 0, .25);
+		}
+
+		body.scrollBeyondLastLine {
+			margin-bottom: calc(100vh - 22px);
+		}
+
+		body.showEditorSelection .code-line {
+			position: relative;
+		}
+
+		body.showEditorSelection .code-active-line:before,
+		body.showEditorSelection .code-line:hover:before {
+			content: "";
+			display: block;
+			position: absolute;
+			top: 0;
+			left: -12px;
+			height: 100%;
+		}
+
+		body.showEditorSelection li.code-active-line:before,
+		body.showEditorSelection li.code-line:hover:before {
+			left: -30px;
+		}
+
+		.vscode-light.showEditorSelection .code-active-line:before {
+			border-left: 3px solid rgba(0, 0, 0, 0.15);
+		}
+
+		.vscode-light.showEditorSelection .code-line:hover:before {
+			border-left: 3px solid rgba(0, 0, 0, 0.40);
+		}
+
+		.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+			border-left: none;
+		}
+
+		.vscode-dark.showEditorSelection .code-active-line:before {
+			border-left: 3px solid rgba(255, 255, 255, 0.4);
+		}
+
+		.vscode-dark.showEditorSelection .code-line:hover:before {
+			border-left: 3px solid rgba(255, 255, 255, 0.60);
+		}
+
+		.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+			border-left: none;
+		}
+
+		.vscode-high-contrast.showEditorSelection .code-active-line:before {
+			border-left: 3px solid rgba(255, 160, 0, 0.7);
+		}
+
+		.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+			border-left: 3px solid rgba(255, 160, 0, 1);
+		}
+
+		.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+			border-left: none;
+		}
+
+		img {
+			max-width: 100%;
+			max-height: 100%;
+		}
+
+		a {
+			text-decoration: none;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		a:focus,
+		input:focus,
+		select:focus,
+		textarea:focus {
+			outline: 1px solid -webkit-focus-ring-color;
+			outline-offset: -1px;
+		}
+
+		hr {
+			border: 0;
+			height: 2px;
+			border-bottom: 2px solid;
+		}
+
+		h1 {
+			padding-bottom: 0.3em;
+			line-height: 1.2;
+			border-bottom-width: 1px;
+			border-bottom-style: solid;
+		}
+
+		h1,
+		h2,
+		h3 {
+			font-weight: normal;
+		}
+
+		table {
+			border-collapse: collapse;
+		}
+
+		table>thead>tr>th {
+			text-align: left;
+			border-bottom: 1px solid;
+		}
+
+		table>thead>tr>th,
+		table>thead>tr>td,
+		table>tbody>tr>th,
+		table>tbody>tr>td {
+			padding: 5px 10px;
+		}
+
+		table>tbody>tr+tr>td {
+			border-top: 1px solid;
+		}
+
+		blockquote {
+			margin: 0 7px 0 5px;
+			padding: 0 16px 0 10px;
+			border-left-width: 5px;
+			border-left-style: solid;
+		}
+
+		code {
+			font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+			font-size: 1em;
+			line-height: 1.357em;
+		}
+
+		body.wordWrap pre {
+			white-space: pre-wrap;
+		}
+
+		pre:not(.hljs),
+		pre.hljs code>div {
+			padding: 16px;
+			border-radius: 3px;
+			overflow: auto;
+		}
+
+		pre code {
+			color: var(--vscode-editor-foreground);
+			tab-size: 4;
+		}
+
+		/** Theming */
+
+		.vscode-light pre {
+			background-color: rgba(220, 220, 220, 0.4);
+		}
+
+		.vscode-dark pre {
+			background-color: rgba(10, 10, 10, 0.4);
+		}
+
+		.vscode-high-contrast pre {
+			background-color: rgb(0, 0, 0);
+		}
+
+		.vscode-high-contrast h1 {
+			border-color: rgb(0, 0, 0);
+		}
+
+		.vscode-light table>thead>tr>th {
+			border-color: rgba(0, 0, 0, 0.69);
+		}
+
+		.vscode-dark table>thead>tr>th {
+			border-color: rgba(255, 255, 255, 0.69);
+		}
+
+		.vscode-light h1,
+		.vscode-light hr,
+		.vscode-light table>tbody>tr+tr>td {
+			border-color: rgba(0, 0, 0, 0.18);
+		}
+
+		.vscode-dark h1,
+		.vscode-dark hr,
+		.vscode-dark table>tbody>tr+tr>td {
+			border-color: rgba(255, 255, 255, 0.18);
+		}
+	</style>
+
+	<style>
+		/* Tomorrow Theme */
+		/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+		/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+		/* Tomorrow Comment */
+		.hljs-comment,
+		.hljs-quote {
+			color: #8e908c;
+		}
+
+		/* Tomorrow Red */
+		.hljs-variable,
+		.hljs-template-variable,
+		.hljs-tag,
+		.hljs-name,
+		.hljs-selector-id,
+		.hljs-selector-class,
+		.hljs-regexp,
+		.hljs-deletion {
+			color: #c82829;
+		}
+
+		/* Tomorrow Orange */
+		.hljs-number,
+		.hljs-built_in,
+		.hljs-builtin-name,
+		.hljs-literal,
+		.hljs-type,
+		.hljs-params,
+		.hljs-meta,
+		.hljs-link {
+			color: #f5871f;
+		}
+
+		/* Tomorrow Yellow */
+		.hljs-attribute {
+			color: #eab700;
+		}
+
+		/* Tomorrow Green */
+		.hljs-string,
+		.hljs-symbol,
+		.hljs-bullet,
+		.hljs-addition {
+			color: #718c00;
+		}
+
+		/* Tomorrow Blue */
+		.hljs-title,
+		.hljs-section {
+			color: #4271ae;
+		}
+
+		/* Tomorrow Purple */
+		.hljs-keyword,
+		.hljs-selector-tag {
+			color: #8959a8;
+		}
+
+		.hljs {
+			display: block;
+			overflow-x: auto;
+			color: #4d4d4c;
+			padding: 0.5em;
+		}
+
+		.hljs-emphasis {
+			font-style: italic;
+		}
+
+		.hljs-strong {
+			font-weight: bold;
+		}
+	</style>
+
+	<style>
+		/*
+ * Markdown PDF CSS
+ */
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+			padding: 0 12px;
+		}
+
+		pre {
+			background-color: #f8f8f8;
+			border: 1px solid #cccccc;
+			border-radius: 3px;
+			overflow-x: auto;
+			white-space: pre-wrap;
+			overflow-wrap: break-word;
+		}
+
+		pre:not(.hljs) {
+			padding: 23px;
+			line-height: 19px;
+		}
+
+		blockquote {
+			background: rgba(127, 127, 127, 0.1);
+			border-color: rgba(0, 122, 204, 0.5);
+		}
+
+		.emoji {
+			height: 1.4em;
+		}
+
+		code {
+			font-size: 14px;
+			line-height: 19px;
+		}
+
+		/* for inline code */
+		:not(pre):not(.hljs)>code {
+			color: #C9AE75;
+			/* Change the old color so it seems less like an error */
+			font-size: inherit;
+		}
+
+		/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+		.page {
+			page-break-after: always;
+		}
+	</style>
+
+	<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+
+<body>
+	<script>
+		mermaid.initialize({
+			startOnLoad: true,
+			theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+				? 'dark'
+				: 'default'
+		});
+	</script>
+	<h1
+		id="%E5%8B%A4%E5%8B%99%E8%A1%A8%E3%81%8B%E3%82%89%E5%B0%8F%E5%8F%A3%E4%BD%9C%E6%88%90%E3%83%84%E3%83%BC%E3%83%AB">
+		勤務表から小口作成ツール</h1>
+	<h2 id="%E6%A6%82%E8%A6%81">概要</h2>
+	<p>本ツールは勤務表をもとに小口交通費・出張旅費精算明細書（以下、小口）を作成するツールです。</p>
+	<h2 id="%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6">注意事項/前提条件</h2>
+	<ul>
+		<li>
+			<p>本ツールは勤務表をもとに勤務地の情報を登録し、小口を作成します。そのため、<span style="color:red">必ず記入済みの勤務表をダウンロードしてください。</span></p>
+		</li>
+		<li>
+			<p>勤務内容と作業場所欄から勤務表の情報を取得しています。</p>
+		</li>
+		<li>
+			<p><span style="color:red">勤務表のフォルダ名が以下の形式となっているか確認</span>し、順番や桁数などが異なる場合は修正してから batファイル を実行してください。</p>
+			<p >※この形式以外だとツールが読み取れない可能性があります</p>
+			<pre class="hljs"><code><div>勤務表ファイル名の形式
+　&lt;3桁の社員番号&gt;_勤務表_YYYYMM_&lt;氏名&gt;.xlsx
+
+　（例）001_勤務表_202106_ボパリ太郎.xlsx
+</div></code></pre>
+		</li>
+		<li>
+			<p>下記の実行前フォルダ構成と比べて不足しているもの（あれば）</p>
+			<p>※フォルダを消してしまった場合やフォルダ名を変更してしまった場合は、下記の「実行前フォルダ構成」と同じになるように追加・編集してください</p>
+		</li>
+		<li>
+			<p>2021年6月現在の勤務表や小口の形式に合わせて作成したツールです。テンプレートが変更された場合など、対応しきれない場合があります。ご了承ください。</p>
+		</li>
+		<li>
+			<p style="color:red">Excelファイルを開いている場合は閉じてからツールを使用してください。保存されずに閉じられてしまう場合があります。</p>
+		</li>
+	</ul>
+	<h2
+		id="%E3%83%84%E3%83%BC%E3%83%AB%E3%82%92%E5%8B%95%E3%81%8B%E3%81%99%E5%89%8D%E3%81%AB%E7%94%A8%E6%84%8F%E3%81%99%E3%82%8B%E3%82%82%E3%81%AE">
+		ツールを動かす前に用意するもの</h2>
+	<ul>
+		<li>記入済みの勤務表（実行前フォルダ構成の☆がついたファイル）</li>
+	</ul>
+	<h2 id="%E5%AE%9F%E8%A1%8C%E5%89%8D%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E6%A7%8B%E6%88%90">実行前フォルダ構成</h2>
+	<pre class="hljs"><code><div>勤務表から小口作成ツール/			
+│			
+├01_ダウンロードした勤務表/	
+│	│ ※このフォルダ配下に、小口を作成したい月の勤務表（☆）を格納してください
+│   │
+│	├001_勤務表_202101_ボパリ太郎.xlsx ☆
+│	├001_勤務表_202102_ボパリ太郎.xlsx ☆
+│	├001_勤務表_202103_ボパリ太郎.xlsx ☆
+│	・		
+│	・		
+│			
+├04_作成済小口明細書/		
+│
+│			
+├99_登録した勤務地を削除/		
+│	└登録した勤務地を削除.bat	
+│			
+├resources/		
+│	├images/
+│	│	├01右クリック→コンテキストメニュー表示.png
+│	│	├02プロパティ(許可前).png
+│	│	├03プロパティ(許可後).png
+│	│	├04完了.png	
+│	│	├お待ちください猫.png
+│	│	└会社アイコン.ico
+│	├main/	
+│	│	├勤務地の情報登録.ps1
+│	│	└勤務表から小口作成.ps1
+│	├scripts/	
+│	│	├しばらくお待ちください.ps1
+│	│	├勤務表の月選択.ps1
+│	│	└注意画面.ps1
+│	├templates/	
+│	│	└小口交通費・出張旅費精算明細書_テンプレ.xlsx
+│	└user_info/	
+│			
+├00_取扱説明書.html		
+│			
+├02_勤務地の情報登録.bat		
+│			
+└03_勤務表から小口作成.bat								
+</div></code></pre>
+	<h2 id="%E4%BD%BF%E7%94%A8%E6%89%8B%E9%A0%86">使用手順</h2>
+	<ol start="0">
+		<li>
+			<p><strong>本ツールをダウンロードし、解凍したら、以下3つのbatファイルのプロパティを画像を参考に操作する。</strong></p>
+			<pre class="hljs"><code><div>・「99_登録した勤務地を削除/登録した勤務地を削除.bat」
+・「02_勤務地の情報登録.bat」
+・「03_勤務表から小口作成.bat」</div></code></pre>
+			<p>&lt;操作方法&gt;　(例)「03_勤務表から小口作成.bat」
+				<br>ファイルを右クリックし、[プロパティ]をクリックする。
+			</p>
+			<img src="resources/images/01右クリック→コンテキストメニュー表示.png" alt="右クリック→コンテキストメニュー表示">
+			<p>[全般]タブの[セキュリティ:]の[許可する(K)]と書いてあるチェックボックスにチェックを入れる。</p>
+			<img src="resources/images/02プロパティ(許可前).png" alt="プロパティ(許可前)">
+			<img src="resources/images/03プロパティ(許可後).png" alt="プロパティ(許可後)">
+			<p>[適用]ボタンをクリックし、[セキュリティ:]の欄が消えたことを確認し、[OK]をクリックする。</div></p>
+			<img src="resources/images/04完了.png" alt="完了">
+		</li>
+
+		<li>
+			<p><strong>保存されずに閉じられてしまう場合があるため、Excelファイルを開いている場合は閉じる。</strong></p>
+		</li>
+		<li>
+			<p><strong>SharePoint（<a
+						href="https://bhopari.sharepoint.com/:f:/s/msteams_8a5eaf/Epp0RNYmlwZNk8PPYZVXPwsBT1TRc6lQVxAZLozPV0Oa5A?e=Qd0fy7" target="_blank">URL</a>）から「01_ダウンロードした勤務表」フォルダに勤務表をダウンロードする。</strong>
+			</p>
+		</li>
+		<li>
+			<p><strong>「02_勤務地の情報登録.bat」をダブルクリックし、案内に従って勤務地の登録をする。</strong></p>
+		</li>
+		<li>
+			<p><strong>「03_勤務表から小口作成.bat」をダブルクリックし、案内に従って作成したい小口の対象年月を選択する。</strong></p>
+		</li>
+		<li>
+			<p><strong>「04_作成済小口明細書」フォルダに作成された小口（実行後フォルダ構成図の★がついたファイル）に不備がないか確認する。</strong></p>
+			<pre class="hljs"><code><div>&lt;見落としがちなチェックポイント&gt;
+・記入された小口の日数、日程、場所、金額などに間違いはないか
+・氏名、所属に間違いはないか
+・印鑑がコピーされているか
+</div></code></pre>
+		</li>
+		<li>
+			<p><strong>登録した勤務地の情報を変更したい場合、「99_登録した勤務地を削除」フォルダの「登録した勤務地を削除.bat」をダブルクリックし、登録した情報全てを削除する。</strong></p>
+			<pre class="hljs"><code><div>&lt;以下のような場合は削除する&gt;
+・登録情報を間違えてしまった
+・引っ越し等により区間や交通費が変更になった
+・バスや鉄道の運賃改定により交通費が変更になった
+</div></code></pre>
+		</li>
+		<li>
+			<p><strong>作業終了後、空のExcelが残る場合があります。「×」をクリックしてウィンドウを削除して問題ありません。</strong></p>
+		</li>
+	</ol>
+	<h2 id="%E5%AE%9F%E8%A1%8C%E5%BE%8C%E3%83%95%E3%82%A9%E3%83%AB%E3%83%80%E6%A7%8B%E6%88%90">実行後フォルダ構成</h2>
+	<pre class="hljs"><code><div>勤務表から小口作成ツール/			
+│			
+├01_ダウンロードした勤務表/		
+│	├001_勤務表_202101_ボパリ太郎.xlsx	
+│	├001_勤務表_202102_ボパリ太郎.xlsx	
+│	├001_勤務表_202103_ボパリ太郎.xlsx	
+│	・		
+│	・		
+│			
+├04_作成済小口明細書/
+│   │ ※このフォルダ配下に、作成された小口（★）が格納されています
+│   │
+│	├001_小口交通費・出張旅費精算明細書_202101_ボパリ太郎.xlsx ★
+│	├001_小口交通費・出張旅費精算明細書_202102_ボパリ太郎.xlsx ★
+│	├001_小口交通費・出張旅費精算明細書_202103_ボパリ太郎.xlsx ★
+│	・		
+│	・		
+│			
+├99_登録した勤務地を削除/		
+│	└登録した勤務地を削除.bat	
+│			
+├resources/		
+│	├images/
+│	│	├01右クリック→コンテキストメニュー表示.png
+│	│	├02プロパティ(許可前).png
+│	│	├03プロパティ(許可後).png
+│	│	├04完了.png	
+│	│	├お待ちください猫.png
+│	│	└会社アイコン.ico
+│	├main/	
+│	│	├勤務地の情報登録.ps1
+│	│	└勤務表から小口作成.ps1
+│	├scripts/	
+│	│	├しばらくお待ちください.ps1
+│	│	├勤務表の月選択.ps1
+│	│	└注意画面.ps1
+│	├templates/	
+│	│	└小口交通費・出張旅費精算明細書_テンプレ.xlsx
+│	└user_info/	
+│		└ツール用引数.txt
+│			
+├00_取扱説明書.html		
+│			
+├02_勤務地の情報登録.bat		
+│			
+└03_勤務表から小口作成.bat						
+</div></code></pre>
+	<h2 id="%E3%82%88%E3%81%8F%E3%81%82%E3%82%8B%E8%B3%AA%E5%95%8F">よくある質問</h2>
+	<h3 id="02%E5%8B%A4%E5%8B%99%E5%9C%B0%E3%81%AE%E6%83%85%E5%A0%B1%E7%99%BB%E9%8C%B2">02_勤務地の情報登録.bat</h3>
+	<ul>
+		<li>
+			<p>まだ5月の小口を作っていないのに「5月の勤務地はすべて登録されています。」と表示されたのですが、どうすればいいですか？</p>
+			<p>→ 5月以前の登録で、5月の勤務表に記入されている勤務地がすべて登録されている時に出る表示です。OKを押してその画面を閉じ、次の手順である「03_勤務表から小口作成.bat」をダブルクリックに進みましょう。</p>
+		</li>
+	</ul>
+	<h3 id="03%E5%8B%A4%E5%8B%99%E8%A1%A8%E3%81%8B%E3%82%89%E5%B0%8F%E5%8F%A3%E4%BD%9C%E6%88%90">03_勤務表から小口作成.bat</h3>
+	<ul>
+		<li>
+			<p>「小口ファイルのテンプレートが存在しませんダウンロードし直してください」と表示されました。なぜですか？</p>
+			<p>→ 「resources」フォルダの「templates」フォルダの中に「小口交通費・出張旅費精算明細書_テンプレ.xlsx」がないため表示されます。以下のような状態になっている場合は、「→」の後の対処をお願いします。
+			</p>
+			<pre class="hljs"><code><div>・ファイル名が「小口交通費・出張旅費精算明細書_テンプレ.xlsx」ではない → 「小口交通費・出張旅費精算明細書_テンプレ.xlsx」に変更する
+・該当ファイルは存在しているが「templates」フォルダにはない → 「templates」フォルダにコピペする
+・そのファイルを消してしまった or 上記を試しても同じ文章が表示される → 本ツールを再度ダウンロードし、使用手順を最初からやり直す
+</div></code></pre>
+		</li>
+		<li>
+			<p>「11月の勤務表ファイルが存在しません」と表示されました。</p>
+			<p>→ 注意事項/前提条件 に書いてある通り、本ツールは勤務表をもとに勤務地の情報を登録し、小口を作成します。ツールが小口を作成したい月の勤務表を認識できない時、その文章が表示されます。
+			</p>
+			<p>また、ファイル名が規定の形式でないとツールが勤務表だと認識できない場合があります。</p>
+			<p>以下の状態になっているかを確認し、違う場合はすべて当てはまるように修正してください。それでも同じ文章が表示される場合は、お手数ですが本ツールを再度ダウンロードし、使用手順を最初からやり直してください。</p>
+			<pre class="hljs"><code><div>・ダウンロードした勤務表が、小口を作成したい11月の勤務表である
+・ファイル名の形式が「&lt;3桁の社員番号&gt;_勤務表_YYYYMM_&lt;氏名&gt;.xlsx」に沿っている
+・勤務表が「01_ダウンロードした勤務表」フォルダの中にある
+</div></code></pre>
+		</li>
+		<li>
+			<p>「勤務地の情報が不足しています登録し直してください」と表示されます。何をすればいいですか。</p>
+			<p>→ その文章は、&quot;勤務表に書かれているけれど情報が登録されていない勤務地&quot;がある場合に表示されます。</p>
+			<p>手順を一つ戻り、「02_勤務地の情報登録.bat」をダブルクリックして勤務地を登録した後に、やり直してください。</p>
+		</li>
+	</ul>
+	<h3 id="%E5%85%A8%E4%BD%93">全体</h3>
+	<ul>
+		<li>
+			<p>しばらく経っても画面が動きません。中断したいのですがどうしたらいいですか。</p>
+			<p>→ タスクバー(画面下のアイコンが並んでいるところ)のPowerShellにポインター(カーソル)を合わせて「×」をクリックし、終了させてください。</p>
+		</li>
+	</ul>
+	<h2 id="%E3%81%9D%E3%81%AE%E4%BB%96">その他</h2>
+	<p>作成：2021年6月</p>
+	<p>作成者：志村瞳　平田隆　松澤夏海
+		（全員 2021年6月現在 2年目）</p>
+	<p>作成者コメント：本ツールは完璧なものではありません。不具合があると思います。すみません。ぜひご自身が使いやすいように改変してください。よろしくお願いいたします。</p>
+
+</body>
+
+</html>
