@@ -494,8 +494,6 @@ foreach ($shape in $allShapes) {
 # 印鑑をコピペしたいセルの位置
 $targetStampCell = "AD82"
 
-# 印鑑がないかもしれないフラグ
-$haveStamp = $true
 # 勤務表の印鑑のあるセルをクリップボードにコピー
 $kinmuhyouSheet.range("AA7").copy() | Out-Null
 # 小口シートに印鑑をペースト
@@ -508,22 +506,6 @@ $koguchiSheet.range($targetStampCell).interior.colorindex = 0
 $LineStyle = "microsoft.office.interop.excel.xlLineStyle" -as [type]
 # 罫線をなしにする
 $koguchiSheet.range($targetStampCell).borders.linestyle = $linestyle::xllinestylenone
-# 印鑑（オブジェクト）が増えてなさそうなら、メッセージを表示する
-$numberOfObject = 79
-if ($koguchiSheet.shapes.count -eq $numberOfObject) {
-    $haveStamp = $false
-}
-
-# 印鑑がないかもしれない場合注意喚起
-if (!($haveStamp)) {
-    # ======= プログレスバーを閉じる =======
-    $formProgressBar.Close()
-    # ポップアップを表示
-    $popup.popup("印鑑が勤務表に入っていない`r`nまたは「印」から大幅にずれている可能性があります`r`n`r`n「印」の上に印鑑を貼り付けてやり直してください",0,"やり直してください",48) | Out-Null
-    # 処理を中断し、終了
-    breakExcel
-}
-
 # 文字色の変更（全部黒に）
 $koguchiSheet.range("A1:BN90").font.colorindex = 1
 
