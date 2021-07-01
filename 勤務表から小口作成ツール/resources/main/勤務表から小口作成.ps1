@@ -158,7 +158,7 @@ $karibaraiForm.icon = (Join-Path -Path $PWD -ChildPath "../images/会社アイコン.i
 $karibaraiLabel = New-Object System.Windows.Forms.Label
 $karibaraiLabel.Location = New-Object System.Drawing.Point(10,10)
 $karibaraiLabel.Size = New-Object System.Drawing.Size(200,30)
-$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いがありますか？"
+$karibaraiLabel.Text = "$targetYear 年 $targetMonth 月の仮払いはありますか？"
 $karibaraiForm.Controls.Add($karibaraiLabel)
 
 # ラベルを表示
