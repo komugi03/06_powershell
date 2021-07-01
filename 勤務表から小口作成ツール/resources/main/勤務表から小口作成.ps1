@@ -14,7 +14,7 @@ function breakExcel {
     $kinmuhyouBook.close()
     $koguchiBook.close()
     Remove-Item -Path $koguchi
-    # 使用していたプロセスの解放
+    # 使用していた変数の解放
     $kinmuhyouBook = $null
     $kinmuhyouSheet = $null
     $koguchiBook = $null
@@ -632,7 +632,7 @@ if($successEnd -eq '1'){
     Start-Process $koguchiFilePath
 }
 
-# 使用したプロセスの解放
+# 使用した変数の解放
 $kinmuhyouBook = $null
 $kinmuhyouSheet = $null
 $koguchiBook = $null

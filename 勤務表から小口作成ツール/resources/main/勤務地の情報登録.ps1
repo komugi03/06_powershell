@@ -12,7 +12,7 @@ Add-Type -AssemblyName System.Drawing
 function breakExcel {
     # Bookを閉じる
     $kinmuhyouBook.close()
-    # 使用していたプロセスの解放
+    # 使用していた変数の解放
     $excel = $null
     $kinmuhyouBook = $null
     $kinmuhyouSheet = $null
@@ -126,28 +126,7 @@ elseif ($kinmuhyou.Count -gt 1) {
 }
 # ---------------- 勤務表チェック処理終了 -------------------
 
-# ----------------------Excelを起動処理--------------------------------
-try {
-    # 起動中のExcelプロセスを取得
-    $excel = [System.Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
-}
-catch {
-    # Excelプロセスが起動してなければ新たに起動する
-    $excel = New-Object -ComObject "Excel.Application" 
-}
-
-# Excelがメッセージダイアログを表示しないようにする
-$excel.DisplayAlerts = $false
-$excel.visible = $false
-
-# 勤務表のフルパス
-$kinmuhyouFullPath = $kinmuhyou.FullName 
-
-# 勤務表ブックを開く
-$kinmuhyouBook = $excel.workbooks.open($kinmuhyouFullPath)
-$kinmuhyouSheet = $kinmuhyouBook.worksheets.item([String]$targetMonth + '月')
-
-# ----------------------Excelを起動処理--------------------------------
+# ----------------------Excelの起動処理--------------------------------
 
 # Excelプロセスが起動してなければ新たに起動する
 $excel = New-Object -ComObject "Excel.Application" 
@@ -241,6 +220,32 @@ if ($workPlaceArray.Length -eq 0) {
     exit
 }
 
+# --------------- Excelの終了処理 ---------------------
+
+# Bookを閉じる
+$kinmuhyouBook.close()
+
+# 使用していたプロセスの解放
+$excel = $null
+# 使用していた変数の解放
+$kinmuhyouBook = $null
+$kinmuhyouSheet = $null
+$outputTekiyou = $null
+$outputKukan = $null
+$koutsukikan1 = $null
+$koutsukikan2 = $null
+$koutsukikan3 = $null
+$koutsukikan4 = $null
+$koutsukikan5 = $null
+$koutsukikan6 = $null
+$inputKoutsukikan = $null
+$koutsukikans = $null
+$outputKoutsukikans = $null
+$outputKingaku = $null
+
+# ガベージコレクト
+[GC]::Collect()
+
 # =========================== 入力画面 ===========================
 
 # ---------------- 変数定義 ----------------
@@ -288,7 +293,7 @@ function drawForm {
     $form.StartPosition = "CenterScreen"
     $form.font = $font
     $form.formborderstyle = "FixedSingle"
-    $form.icon = (Join-Path -Path $PWD -ChildPath "../images/会社アイコン.ico")
+    $form.icon = (Join-Path -Path $PWD -ChildPath "../images/BVS_icon.ico")
     return $form
 }
 
