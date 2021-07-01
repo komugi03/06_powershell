@@ -292,6 +292,7 @@ function drawForm {
     $form.Size = New-Object System.Drawing.Size(570, 730)
     $form.StartPosition = "CenterScreen"
     $form.font = $font
+    $form.Topmost = $True
     $form.formborderstyle = "FixedSingle"
     $form.icon = (Join-Path -Path $PWD -ChildPath "../images/会社アイコン.ico")
     return $form
@@ -767,6 +768,10 @@ foreach ($inputContent in $inputContentsArray) {
 
 # 勤務地の登録完了画面
 $popup.popup("勤務地の登録が完了しました`r`n小口請求書の作成を行ってください", 0, "勤務地の登録が完了しました", 64)| Out-Null
+
+# 小口を作成するバッチファイルがあるフォルダを開く
+$createKoguchiFilePath = join-path -Path $PWD -ChildPath ..\..\
+Start-Process $createKoguchiFilePath
 
 # 変数の解放
 $outputTekiyou = $null

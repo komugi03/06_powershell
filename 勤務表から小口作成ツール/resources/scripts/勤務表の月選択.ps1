@@ -16,6 +16,7 @@ function choiceMonth {
         $form.Size = New-Object System.Drawing.Size(265, 200)
         $form.StartPosition = "CenterScreen"
         $form.font = $Font
+        $form.Topmost = $True
         $form.icon = (Join-Path -Path $PWD -ChildPath "../images/会社アイコン.ico")
 
         # ラベルを表示
