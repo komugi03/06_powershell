@@ -273,14 +273,8 @@ $formProgressBar.Show()
 
 
 # ----------------------Excelを起動する--------------------------------
-try {
-    # 起動中のExcelプロセスを取得
-    $excel = [System.Runtime.InteropServices.Marshal]::GetActiveObject("Excel.Application")
-}
-catch {
-    # Excelプロセスが起動してなければ新たに起動する
-    $excel = New-Object -ComObject "Excel.Application" 
-}
+# Excelプロセスが起動してなければ新たに起動する
+$excel = New-Object -ComObject "Excel.Application" 
 
 # Excelがメッセージダイアログを表示しないようにする
 $excel.DisplayAlerts = $false
