@@ -288,7 +288,7 @@ $blankErrorMessages = @()
 # Args[0] : タイトルに表示する文字列
 function drawForm {
     $form = New-Object System.Windows.Forms.Form
-    $form.Text = "勤務地の情報を登録"
+    $form.Text = "勤務地の情報登録"
     $form.Size = New-Object System.Drawing.Size(570, 730)
     $form.StartPosition = "CenterScreen"
     $form.font = $font
@@ -429,7 +429,7 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
     drawReturnButton 650 "戻る" $forms[$i]
 
     # 在宅ボタン作成関数呼び出し
-    drawAtHomeButton 605 "在宅勤務/定期/登録対象外" $forms[$i]
+    drawAtHomeButton 605 "在宅勤務 / 定期" $forms[$i]
 
     # 登録済み勤務地から選択ボタン作成関数呼び出し
     drawRegisteredButton 605 "登録済みの勤務地から選択" $forms[$i]
@@ -757,7 +757,6 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
     
     }
     else {
-        breakExcel
         exit
     }    
 }
@@ -768,9 +767,6 @@ foreach ($inputContent in $inputContentsArray) {
 
 # 勤務地の登録完了画面
 $popup.popup("勤務地の登録が完了しました`r`n小口請求書の作成を行ってください", 0, "勤務地の登録が完了しました", 64)| Out-Null
-
-# 勤務表ファイルを閉じる
-breakExcel
 
 # 変数の解放
 $outputTekiyou = $null
