@@ -337,115 +337,112 @@ for ($row = 14; $row -le 44; $row++) {
             # 作業場所に書いてある文字列を勤務地とする
             $workPlace = $sagyoubasho
         }
-        # 在宅か休みの時以外の場合、小口に記入
-        if ($workPlace -ne "" -and $workPlace -ne '在宅') {
+        # 小口に記入する処理   
+        # ------------- 変数定義 ---------------
+        # 適用(開始位置)
+        $tekiyou = 6
+        # 区間(開始位置)
+        $kukan = 18
+        # 交通機関(開始位置)
+        $koutsukikan = 26
+        # 金額(開始位置)
+        $kingaku = 30
+        # Substring()で取り除きたい、「勤務地_」の総文字数
+        $workPlaceLength = [int]$workPlace.length + 1
+        
+        # ---------------勤務地情報リストを読み込む---------------------
+        # 勤務地情報リストが書いてあるテキスト
+        $infoTextFileName = "ツール用引数.txt"
+        $infoTextFileFullpath = Join-Path -Path $PWD -ChildPath "..\user_info\$infoTextFileName"        
+        # 勤務地情報リストテキストが存在したときの処理
+        if(Test-Path $infoTextFileFullpath){
             
-            # ------------- 変数定義 ---------------
-            # 適用(開始位置)
-            $tekiyou = 6
-            # 区間(開始位置)
-            $kukan = 18
-            # 交通機関(開始位置)
-            $koutsukikan = 26
-            # 金額(開始位置)
-            $kingaku = 30
-            # Substring()で取り除きたい、「勤務地_」の総文字数
-            $workPlaceLength = [int]$workPlace.length + 1
+            $argumentText = (Get-Content $infoTextFileFullpath)
             
-            # ---------------勤務地情報リストを読み込む---------------------
-            # 勤務地情報リストが書いてあるテキスト
-            $infoTextFileName = "ツール用引数.txt"
-            $infoTextFileFullpath = Join-Path -Path $PWD -ChildPath "..\user_info\$infoTextFileName"        
-            # 勤務地情報リストテキストが存在したときの処理
-            if(Test-Path $infoTextFileFullpath){
-                
-                $argumentText = (Get-Content $infoTextFileFullpath)
-                
-                # 「勤務内容」欄の文字列にマッチした勤務地の情報を、リストから取得 ( 配列の中身　[0]:適用　[1]:区間　[2]:交通機関　[3]:金額 )
-                $workPlaceInfo = $argumentText | Select-String -Pattern ($workPlace + '_')
-                
-                # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
-                if($workPlaceInfo -eq $null){
-                    # ======= プログレスバーを閉じる =======
-                    $formProgressBar.Close()
-                    # ポップアップを表示
-                    $popup.popup("勤務地の情報が不足しています`r`n登録し直してください",0,"やり直してください",48) | Out-Null
-                    # 処理を中断し、終了
-                    breakExcel                
-                }
-                
-                # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
-                elseif(([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength) -eq '1'){
-                    # 小口に記入しない
-                }
-                
-                # 上記以外の場合、小口に書き込む
-                else{
-                    # 空白なら記入、埋まってたら下の段に移動する
-                    if($koguchiSheet.Cells.item($koguchiRowCounter,2).text -eq ""){
-                        
-                        # 「月」に記入
-                        # B11、14、17...にユーザーが入力した対象月を入れる
-                        $koguchiSheet.cells.item($koguchiRowCounter, 2) = $targetMonth
-                        
-                        # 「日」に記入
-                        # 勤務表のC列をコピペ
-                        $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
-                        
-                        # 「適用（行先、要件）」に記入
-                        $tekiyouText = ([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
-                        $koguchiSheet.Cells.item($koguchiRowCounter,$tekiyou) = $tekiyouText
-                        
-                        # 「区間」に記入
-                        $kukanText = ([String]$workPlaceInfo[1]).Substring($workPlaceLength, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
-                        $koguchiSheet.Cells.item($koguchiRowCounter,$kukan) = $kukanText
-                        
-                        # 「交通機関」に記入
-                        
-                        # 最初のお台場_を取り除いた文字列にする
-                        # 小田急線`r`nJR山手線`r`nりんかい線　の状態
-                        $koutsukikanText = ([String]$workPlaceInfo[2]).Substring($workPlaceLength, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
-                        $koutsukikanArray = $koutsukikanText -split '`r`n'
-                        
-                        # 小口に記入する文字列を格納する変数を用意し、初期化する
-                        $koutsukikanKaigyou = $null
-                        
-                        # 配列が1以下じゃない間、繰り返す
-                        for ($i = 0; $i -lt $koutsukikanArray.Length; $i++) {
-                            # 改行コードを足す
-                            $koutsukikanKaigyou += $koutsukikanArray[$i] + "`r`n"
-                        }
-                        
-                        # 最後の改行を削除する
-                        $koutsukikanKaigyou = $koutsukikanKaigyou.Substring(0, $koutsukikanKaigyou.Length - 1)
-                        $koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan) = $koutsukikanKaigyou
-                        
-                        # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
-                        if($koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan).text -match "^.+\n.+\n.+\n.+"){
-                            $koguchiSheet.Range("Z$koguchiRowCounter").RowHeight = 40
-                        }
-                        
-                        # 「金額」に記入
-                        $kingakuText = ([String]$workPlaceInfo[3]).Substring($workPlaceLength, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
-                        $koguchiSheet.Cells.item($koguchiRowCounter,$kingaku) = $kingakuText
-                        
-                    }
-                    
-                    # 小口の行カウンターに3を追加し、次の行にする
-                    $koguchiRowCounter = $koguchiRowCounter + 3
-                    
-                }
-                
-                # 勤務地情報リストテキストが存在したときの処理終了
-            }else{
+            # 「勤務内容」欄の文字列にマッチした勤務地の情報を、リストから取得 ( 配列の中身　[0]:適用　[1]:区間　[2]:交通機関　[3]:金額 )
+            $workPlaceInfo = $argumentText | Select-String -Pattern ($workPlace + '_')
+            
+            # 「勤務内容」欄の内容が勤務の情報リストになかった場合、ポップアップを表示し終了する
+            if($workPlaceInfo -eq $null){
                 # ======= プログレスバーを閉じる =======
                 $formProgressBar.Close()
                 # ポップアップを表示
-                $popup.popup($infoTextFileName +"が見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
+                $popup.popup("勤務地の情報が不足しています`r`n登録し直してください",0,"やり直してください",48) | Out-Null
                 # 処理を中断し、終了
-                breakExcel
-            }    
-        }
+                breakExcel                
+            }
+            
+            # 在宅フラグ(適用部分に1)が立っている場合、小口には記入しない
+            elseif(([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength) -eq '1'){
+                # 小口に記入しない
+            }
+            
+            # 上記以外の場合、小口に書き込む
+            else{
+                # 空白なら記入、埋まってたら下の段に移動する
+                if($koguchiSheet.Cells.item($koguchiRowCounter,2).text -eq ""){
+                    
+                    # 「月」に記入
+                    # B11、14、17...にユーザーが入力した対象月を入れる
+                    $koguchiSheet.cells.item($koguchiRowCounter, 2) = $targetMonth
+                    
+                    # 「日」に記入
+                    # 勤務表のC列をコピペ
+                    $koguchiSheet.cells.item($koguchiRowCounter, 4) = $kinmuhyouSheet.cells.item($row, 3).text
+                    
+                    # 「適用（行先、要件）」に記入
+                    $tekiyouText = ([String]$workPlaceInfo[0]).Substring($workPlaceLength, ([String]$workPlaceInfo[0]).Length - $workPlaceLength)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$tekiyou) = $tekiyouText
+                    
+                    # 「区間」に記入
+                    $kukanText = ([String]$workPlaceInfo[1]).Substring($workPlaceLength, ([String]$workPlaceInfo[1]).Length - $workPlaceLength)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$kukan) = $kukanText
+                    
+                    # 「交通機関」に記入
+                    
+                    # 最初のお台場_を取り除いた文字列にする
+                    # 小田急線`r`nJR山手線`r`nりんかい線　の状態
+                    $koutsukikanText = ([String]$workPlaceInfo[2]).Substring($workPlaceLength, ([String]$workPlaceInfo[2]).Length - $workPlaceLength)
+                    $koutsukikanArray = $koutsukikanText -split '`r`n'
+                    
+                    # 小口に記入する文字列を格納する変数を用意し、初期化する
+                    $koutsukikanKaigyou = $null
+                    
+                    # 配列が1以下じゃない間、繰り返す
+                    for ($i = 0; $i -lt $koutsukikanArray.Length; $i++) {
+                        # 改行コードを足す
+                        $koutsukikanKaigyou += $koutsukikanArray[$i] + "`r`n"
+                    }
+                    
+                    # 最後の改行を削除する
+                    $koutsukikanKaigyou = $koutsukikanKaigyou.Substring(0, $koutsukikanKaigyou.Length - 1)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan) = $koutsukikanKaigyou
+                    
+                    # 4行以上なら交通機関の行幅を増やす(5行目までなら読める高さ)
+                    if($koguchiSheet.Cells.item($koguchiRowCounter,$koutsukikan).text -match "^.+\n.+\n.+\n.+"){
+                        $koguchiSheet.Range("Z$koguchiRowCounter").RowHeight = 40
+                    }
+                    
+                    # 「金額」に記入
+                    $kingakuText = ([String]$workPlaceInfo[3]).Substring($workPlaceLength, ([String]$workPlaceInfo[3]).Length - $workPlaceLength)
+                    $koguchiSheet.Cells.item($koguchiRowCounter,$kingaku) = $kingakuText
+                    
+                }
+                
+                # 小口の行カウンターに3を追加し、次の行にする
+                $koguchiRowCounter = $koguchiRowCounter + 3
+                
+            }
+            
+            # 勤務地情報リストテキストが存在したときの処理終了
+        }else{
+            # ======= プログレスバーを閉じる =======
+            $formProgressBar.Close()
+            # ポップアップを表示
+            $popup.popup($infoTextFileName +"が見つかりません`r`nやり直してください",0,"やり直してください",48) | Out-Null
+            # 処理を中断し、終了
+            breakExcel
+        }    
     }    
 }
 
