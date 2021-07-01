@@ -293,7 +293,7 @@ function drawForm {
     $form.StartPosition = "CenterScreen"
     $form.font = $font
     $form.formborderstyle = "FixedSingle"
-    $form.icon = (Join-Path -Path $PWD -ChildPath "../images/BVS_icon.ico")
+    $form.icon = (Join-Path -Path $PWD -ChildPath "../images/âÔé–ÉAÉCÉRÉì.ico")
     return $form
 }
 
