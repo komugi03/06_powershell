@@ -176,9 +176,12 @@ Copy-Item -path $koguchiTemplate.FullName -Destination $koguchi
 
 # ----------------テンプレートから小口交通費請求書を作成する---------------------
 
-# 勤務表ファイル名に使うYYYYMMの年月の形式を変数化
-$targetMonth00 = "{0:00}" -f [int]$targetMonth
-$fileNameMonth = ("$targetYear" + "$targetMonth00")
+# ファイル名の勤務表_のあとの表記が「M月」表記の場合
+$fileNameMonth = [string]("$targetMonth" + "月")
+
+# もし「勤務表_YYYYMM」のような表記にするなら ↑ をコメントアウトして ↓ のコメントアウトをぬく
+# $targetMonth00 = "{0:00}" -f [int]$targetMonth
+# $fileNameMonth = ("$targetYear" + "$targetMonth00")
 
 # 勤務表ファイルを取得
 $kinmuhyou = Get-ChildItem -Recurse -File | ? Name -Match ("[0-9]{3}_勤務表_" + "$fileNameMonth" + "_.+")
