@@ -391,7 +391,7 @@ $koutsukikan5 = @()
 $koutsukikan6 = @()
 
 # ボタンを押した結果がはいる
-[Int32[]]$inputContentsResults = new-object System.Int32[] $workPlaceArray.length
+$inputContentsResults = @(1..$workPlaceArray.length)
 
 ####################################
 $kingakuErrorMessages = @()
@@ -544,7 +544,8 @@ $waitForm.Close()
 
 # =============================== input ===============================
 
-:EMPTY for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
+# :EMPTY for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
+for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
 
     $forms += drawForm $workPlaceArray[$i]
 
@@ -668,16 +669,22 @@ $waitForm.Close()
     }
 }
 
+write-host '$workPlaceArray.Length:'$workPlaceArray.Length
+write-host 'inputContentsResults.Length:'$inputContentsResults.Length
+
 # =============================== output ===============================
-for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
+:EMPTY for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
+
+    write-host '$i:'$i
 
     # 可視化
-    $inputContentsResults += $forms.ShowDialog()
+    $inputContentsResults[$i] = $forms[$i].ShowDialog()
+    $inputContentsResults[$i]
 
     # --------------- OKボタンを押したら ---------------
-    if ($inputContentsResult[$i] -eq "OK") {
+    if ($inputContentsResults[$i] -eq "OK") {
 
-        #  ---------------- 空白エラー判定 -----------------
+        # #  ---------------- 空白エラー判定 -----------------
 
         # 以下の変数をリセットする
         #
@@ -749,8 +756,8 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
             if ($isEmpty) {
                 # 交通機関の空白カウントを初期化
                 $nullOrEmptyCount = 0
+                # エラーが出た場合、スルーしないようにする
                 $i = $i - 1
-                $isAdded = "False"
                 continue EMPTY
             }
             $kingakuErrorMessages[$i].text = "　"
@@ -758,8 +765,7 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
             
             # エラーがない場合はループから抜ける
             break
-        }
-        
+        }    
 
         # ---------------- 適用（行先、要件） -----------------
 
@@ -777,16 +783,10 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
 
         $inputContentsArray += @($workPlaceArray[$i] + "_" + $outputKingakus[$i].text)
 
-        # フォーム増やしたフラグ
-        if ($isAdded -ne "Retry") {
-            $isAdded = "True"
-        }else{
-            $isAdded = "False"
-        }
 
         # --------------- 戻るボタンを押したら ---------------
     }
-    elseif ($inputContentsResult[$i] -eq "Retry") {
+    elseif ($inputContentsResults[$i] -eq "Retry") {
         
         # 繰り返しの条件を2戻す
         # 例えば、1画面目が田町（$i = 1）2画面目がお台場（$i = 2）だったとき、田町の画面に戻りたいときは $i = 1 にしたい
@@ -802,12 +802,10 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
         else {
             $inputContentsArray = $inputContentsArray[0..($inputContentsArray.Length - 5)]
         }
-        
-        $isAdded = "Retry"
 
         # --------------- 在宅/定期ボタンを押したら ---------------
     }
-    elseif ($inputContentsResult[$i] -eq "Yes") {
+    elseif ($inputContentsResults[$i] -eq "Yes") {
         $inputContentsArray += @($workPlaceArray[$i] + "_1")
         $inputContentsArray += @($workPlaceArray[$i] + "_1")
         $inputContentsArray += @($workPlaceArray[$i] + "_1")
@@ -816,7 +814,7 @@ for ($local:i = 0; $i -lt $workPlaceArray.Length; $i++) {
         $isAdded = "True"
     }
     # 登録済み勤務地から選択する場合
-    elseif ($inputContentsResult[$i] -eq "No") {
+    elseif ($inputContentsResults[$i] -eq "No") {
         # 登録済み勤務地選択用フォームを作成
         $selectForm = New-Object System.Windows.Forms.Form
         $selectForm.Text = "登録済みの勤務地から選択"
